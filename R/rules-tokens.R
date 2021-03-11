@@ -193,16 +193,16 @@ fix_quotes <- function(pd_flat) {
 
 #' @importFrom rlang is_empty
 fix_quotes_one <- function(x) {
-  rx <- "^'([^\"]*)'$"
+  rx <- '^"([^\']*)"$'
   i <- grep(rx, x)
-  if (is_empty(i)) {
+  if (rlang::is_empty(i)) {
     return(x)
   }
-
+  
   # replace outer single quotes
-  xi <- gsub(rx, '"\\1"', x[i])
-
+  xi <- gsub(rx, "'\\1'", x[i])
+  
   # Replace inner escaped quotes (\') by ' and keep all other instances of \., including \\
-  x[i] <- gsub("\\\\(')|(\\\\[^'])", "\\1\\2", xi)
+  x[i] <- gsub('\\\\(")|(\\\\[^"])', '\\1\\2', xi)
   x
 }
