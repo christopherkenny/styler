@@ -78,7 +78,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">styler</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.3.2.9000</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.4.1.9003</span>
       </span>
     </div>
 
@@ -139,6 +139,9 @@
     <li>
       <a href="https://lorenzwalthert.netlify.com/post/styler-1-3-0/">Version 1.3.0</a>
     </li>
+    <li>
+      <a href="https://lorenzwalthert.netlify.app/post/styler-1-4-0/">Version 1.4.0</a>
+    </li>
     <li class="divider"></li>
     <li>
       <a href="../news/index.html">Changelog</a>
@@ -190,8 +193,8 @@
 <span class='fu'>indent_op</span><span class='op'>(</span>
   <span class='va'>pd</span>,
   <span class='va'>indent_by</span>,
-  token <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='va'>math_token</span>, <span class='va'>logical_token</span>, <span class='va'>special_token</span>, <span class='st'>"LEFT_ASSIGN"</span>, <span class='st'>"EQ_ASSIGN"</span>,
-    <span class='st'>"'$'"</span><span class='op'>)</span>
+  token <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='va'>math_token</span>, <span class='va'>logical_token</span>, <span class='va'>special_token</span>, <span class='st'>"PIPE"</span>, <span class='st'>"LEFT_ASSIGN"</span>,
+    <span class='st'>"EQ_ASSIGN"</span>, <span class='st'>"'$'"</span><span class='op'>)</span>
 <span class='op'>)</span>
 
 <span class='fu'>indent_eq_sub</span><span class='op'>(</span><span class='va'>pd</span>, <span class='va'>indent_by</span>, token <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"EQ_SUB"</span>, <span class='st'>"EQ_FORMALS"</span><span class='op'>)</span><span class='op'>)</span>
@@ -247,7 +250,7 @@ statements that do not have curly parenthesis.</p></li>
 
       <footer>
       <div class="copyright">
-  <p>Developed by <a href='http://krlmlr.info'>Kirill Müller</a>, <a href='http://lorenzwalthert.netlify.com'>Lorenz Walthert</a>.</p>
+  <p>Developed by <a href='https://krlmlr.info'>Kirill Müller</a>, <a href='https://lorenzwalthert.com'>Lorenz Walthert</a>.</p>
 </div>
 
 <div class="pkgdown">
