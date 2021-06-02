@@ -44,9 +44,9 @@ template:
 
 authors:
   Kirill Müller:
-    href: http://krlmlr.info
+    href: https://krlmlr.info
   Lorenz Walthert:
-    href: http://lorenzwalthert.netlify.com
+    href: https://lorenzwalthert.com
 
 development:
   mode: auto
@@ -61,6 +61,8 @@ news:
     href: https://www.tidyverse.org/blog/2019/11/styler-1-2-0/
   - text: "Version 1.3.0"
     href: https://lorenzwalthert.netlify.com/post/styler-1-3-0/
+  - text: "Version 1.4.0"
+    href: https://lorenzwalthert.netlify.app/post/styler-1-4-0/
 
 articles:
 - title: Get started

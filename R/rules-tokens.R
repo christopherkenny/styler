@@ -17,7 +17,7 @@ resolve_semicolon <- function(pd) {
 }
 
 add_brackets_in_pipe <- function(pd) {
-  is_pipe <- pd$token == "SPECIAL-PIPE"
+  is_pipe <- pd$token %in% c("SPECIAL-PIPE", "PIPE")
   Reduce(add_brackets_in_pipe_one, which(is_pipe), init = pd)
 }
 
@@ -31,7 +31,7 @@ add_brackets_in_pipe_one <- function(pd, pos) {
       tokens = c("'('", "')'"),
       texts = c("(", ")"),
       pos_ids = new_pos_ids,
-      lag_newlines = rep(0, 2)
+      lag_newlines = rep(0L, 2)
     )
     pd$child[[next_non_comment]] <- bind_rows(
       pd$child[[next_non_comment]],

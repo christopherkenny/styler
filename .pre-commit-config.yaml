@@ -1,19 +1,24 @@
 # All available hooks: https://pre-commit.com/hooks.html
 # R specific hooks: https://github.com/lorenzwalthert/precommit
+default_stages: [commit]
+
 repos:
 -   repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.1.2.9001
+    rev: a632da39a23e806f06261ebf0cf294e1b70428f2
     hooks:
     -   id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
         exclude: 'tests/testthat/.*/.*\.R'
     -   id: roxygenize
+        additional_dependencies:
+        - r-lib/pkgapi
     -   id: use-tidy-description
     -   id: spell-check
         exclude: >
           (?x)^(
           data/.*|
           \.github/.*\.yaml|
+          touchstone/config\.json|
           (.*/|)\.Rprofile|
           (.*/|)\.Renviron|
           (.*/|)\.gitignore|
@@ -39,7 +44,9 @@ repos:
     -   id: deps-in-desc
         exclude: >
           (?x)^(
-          bench/.*
+          touchstone/.*|
+          tests/testthat/.*-in\.R(md)?|
+          tests/testthat/.*-out\.R(md)?
           )$
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -56,3 +63,10 @@ repos:
         language: fail
         files: '\.Rhistory|\.RData|\.Rds|\.rds$'
         # `exclude: <regex>` to allow committing specific files.
+    -   id: require-news-on-push
+        name: Require bullet in NEWS.md
+        description: NEWS.md must be updated with every PR.
+        entry: inst/hooks/require-news-update.R
+        stages: [push]
+        language: script
+        always_run: true

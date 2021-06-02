@@ -83,11 +83,12 @@ that invalidates code.
 The following section describes when and how styling is guaranteed to
 yield correct code.
 
-If tokens are to be styled (as specified with the \code{scope} argument), no tokens
-are changed and the abstract syntax tree (AST) should not change.
+If tokens are not in the styling scope (as specified with the \code{scope}
+argument), no tokens are changed and the abstract syntax tree (AST) should
+not change.
 Hence, it is possible to validate the styling by comparing whether the parsed
 expression before and after styling have the same AST.
-This comparison omits comments. styler compares
+This comparison omits roxygen code examples and comments. styler throws an
 error if the AST has changed through styling.
 
 Note that if tokens are to be styled, such a comparison is not conducted because
@@ -107,12 +108,20 @@ styling whether or not it was actually changed (or would be changed when
 
 \examples{
 \dontrun{
-
+# the following is identical (because of ... and defaults)
+# but the first is most convenient:
+style_pkg(strict = TRUE)
 style_pkg(style = tidyverse_style, strict = TRUE)
+style_pkg(transformers = tidyverse_style(strict = TRUE))
+
+# more options from `tidyverse_style()`
 style_pkg(
   scope = "line_breaks",
   math_token_spacing = specify_math_token_spacing(zero = "'+'")
 )
+
+# don't write back and fail if input is not already styled
+style_pkg("/path/to/pkg/", dry = "fail")
 }
 }
 \seealso{

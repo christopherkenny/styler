@@ -232,19 +232,27 @@ set_space_between_levels <- function(pd_flat) {
 #' Start comments with a space
 #'
 #' Forces comments to start with a space, that is, after the regular expression
-#' "^#+'*", at least one space must follow if the comment is *non-empty*, i.e
+#' `#+['\\*]`, at least one space must follow if the comment is *non-empty*, i.e
 #' there is not just spaces within the comment. Multiple spaces may be legit for
 #' indention in some situations.
+#' @section Exceptions:
+#' Spaces won't be added to comments when they are:
+#'
+#' * shebangs
+#' * code chunk headers
+#' * xaringan markers
+#'
 #' @param pd A parse table.
-#' @param force_one Whether or not to force one space or allow multiple spaces
-#'   after the regex "^#+'*".
+#' @param force_one Whether or not to force one space or allow multiple spaces.
 #' @importFrom purrr map_chr
 #' @keywords internal
 start_comments_with_space <- function(pd, force_one = FALSE) {
   is_comment <- is_comment(pd)
 
   if (any(is_comment)) {
-    is_comment <- is_comment & !is_shebang(pd) & !is_code_chunk_header_or_xaringan(pd)
+    is_comment <- is_comment &
+      !is_shebang(pd) &
+      !is_code_chunk_header_or_xaringan_or_code_output(pd)
     if (!any(is_comment)) {
       return(pd)
     }

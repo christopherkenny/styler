@@ -36,11 +36,12 @@ NULL
 #' The following section describes when and how styling is guaranteed to
 #' yield correct code.
 #'
-#' If tokens are to be styled (as specified with the `scope` argument), no tokens
-#' are changed and the abstract syntax tree (AST) should not change.
+#' If tokens are not in the styling scope (as specified with the `scope`
+#' argument), no tokens are changed and the abstract syntax tree (AST) should
+#' not change.
 #' Hence, it is possible to validate the styling by comparing whether the parsed
 #' expression before and after styling have the same AST.
-#' This comparison omits comments. styler compares
+#' This comparison omits roxygen code examples and comments. styler throws an
 #' error if the AST has changed through styling.
 #'
 #' Note that if tokens are to be styled, such a comparison is not conducted because
@@ -53,12 +54,20 @@ NULL
 #' @family stylers
 #' @examples
 #' \dontrun{
-#'
+#' # the following is identical (because of ... and defaults)
+#' # but the first is most convenient:
+#' style_pkg(strict = TRUE)
 #' style_pkg(style = tidyverse_style, strict = TRUE)
+#' style_pkg(transformers = tidyverse_style(strict = TRUE))
+#'
+#' # more options from `tidyverse_style()`
 #' style_pkg(
 #'   scope = "line_breaks",
 #'   math_token_spacing = specify_math_token_spacing(zero = "'+'")
 #' )
+#'
+#' # don't write back and fail if input is not already styled
+#' style_pkg("/path/to/pkg/", dry = "fail")
 #' }
 #' @export
 style_pkg <- function(pkg = ".",
@@ -164,12 +173,20 @@ prettify_pkg <- function(transformers,
 #' @examples
 #' style_text("call( 1)")
 #' style_text("1    + 1", strict = FALSE)
+#'
+#' # the following is identical (because of ... and defaults)
+#' # but the first is most convenient:
+#' style_text("a<-3++1", strict = TRUE)
+#' style_text("a<-3++1", style = tidyverse_style, strict = TRUE)
+#' style_text("a<-3++1", transformers = tidyverse_style(strict = TRUE))
+#'
+#' # more invasive scopes include less invasive scopes by default
 #' style_text("a%>%b", scope = "spaces")
 #' style_text("a%>%b; a", scope = "line_breaks")
 #' style_text("a%>%b; a", scope = "tokens")
-#' # the following is identical but the former is more convenient:
-#' style_text("a<-3++1", style = tidyverse_style, strict = TRUE)
-#' style_text("a<-3++1", transformers = tidyverse_style(strict = TRUE))
+#'
+#' # opt out with I() to only style specific levels
+#' style_text("a%>%b; a", scope = I("tokens"))
 #' @export
 style_text <- function(text,
                        ...,
@@ -202,7 +219,13 @@ style_text <- function(text,
 #' @family stylers
 #' @examples
 #' \dontrun{
-#' style_dir(file_type = "r")
+#' style_dir("path/to/dir", file_type = c("rmd", ".R"))
+#'
+#' # the following is identical (because of ... and defaults)
+#' # but the first is most convenient:
+#' style_dir(strict = TRUE)
+#' style_dir(style = tidyverse_style, strict = TRUE)
+#' style_dir(transformers = tidyverse_style(strict = TRUE))
 #' }
 #' @export
 style_dir <- function(path = ".",
@@ -279,11 +302,20 @@ prettify_any <- function(transformers,
 #' @inheritSection style_pkg Warning
 #' @inheritSection style_pkg Round trip validation
 #' @examples
-#' # the following is identical but the former is more convenient:
 #' file <- tempfile("styler", fileext = ".R")
 #' xfun::write_utf8("1++1", file)
+#'
+#' # the following is identical (because of ... and defaults),
+#' # but the first is most convenient:
+#' style_file(file, strict = TRUE)
 #' style_file(file, style = tidyverse_style, strict = TRUE)
 #' style_file(file, transformers = tidyverse_style(strict = TRUE))
+#'
+#' # only style indention and less invasive  levels (i.e. spaces)
+#' style_file(file, scope = "indention", strict = TRUE)
+#' # name levels explicitly to not style less invasive levels
+#' style_file(file, scope = I(c("tokens", "spaces")), strict = TRUE)
+#'
 #' xfun::read_utf8(file)
 #' unlink(file)
 #' @family stylers

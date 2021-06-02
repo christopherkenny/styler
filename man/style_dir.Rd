@@ -92,11 +92,12 @@ that invalidates code.
 The following section describes when and how styling is guaranteed to
 yield correct code.
 
-If tokens are to be styled (as specified with the \code{scope} argument), no tokens
-are changed and the abstract syntax tree (AST) should not change.
+If tokens are not in the styling scope (as specified with the \code{scope}
+argument), no tokens are changed and the abstract syntax tree (AST) should
+not change.
 Hence, it is possible to validate the styling by comparing whether the parsed
 expression before and after styling have the same AST.
-This comparison omits comments. styler compares
+This comparison omits roxygen code examples and comments. styler throws an
 error if the AST has changed through styling.
 
 Note that if tokens are to be styled, such a comparison is not conducted because
@@ -109,7 +110,13 @@ See section 'Warning' for a good strategy to apply styling safely.
 
 \examples{
 \dontrun{
-style_dir(file_type = "r")
+style_dir("path/to/dir", file_type = c("rmd", ".R"))
+
+# the following is identical (because of ... and defaults)
+# but the first is most convenient:
+style_dir(strict = TRUE)
+style_dir(style = tidyverse_style, strict = TRUE)
+style_dir(transformers = tidyverse_style(strict = TRUE))
 }
 }
 \seealso{

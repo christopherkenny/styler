@@ -1,14 +1,33 @@
-name: Continuous Benchmarks
+name: Continuous Benchmarks (Receive)
 on: pull_request
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.read_touchstone_config.outputs.config }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+           fetch-depth: 0
+
+      - id: read_touchstone_config
+        run: |
+          content=`cat ./touchstone/config.json`
+          # the following lines are only required for multi line json
+          content="${content//'%'/'%25'}"
+          content="${content//$'\n'/'%0A'}"
+          content="${content//$'\r'/'%0D'}"
+          # end of optional handling for multi line json
+          echo "::set-output name=config::$content"
   build:
+    needs: prepare
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
-          - {os: ubuntu-18.04, r: '4.0.0', rspm: 'https://packagemanager.rstudio.com/all/__linux__/bionic/291'}
-
+          - ${{ fromJson(needs.prepare.outputs.config) }}
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
@@ -24,7 +43,7 @@ jobs:
           git config --local user.email "actions@github.com"
       - name: Ensure base branch is fetched
         run: |
-          git checkout -b $GITHUB_HEAD_REF
+          git checkout -b $GITHUB_HEAD_REF # this is current ref. This is required for naming.
           git branch $GITHUB_BASE_REF remotes/origin/$GITHUB_BASE_REF
       - name: Setup R
         uses: r-lib/actions/setup-r@master
@@ -52,23 +71,26 @@ jobs:
           sudo apt-get install libcurl4-openssl-dev libgit2-dev
       - name: Install dependencies
         run: |
-          Rscript -e "install.packages(c('ggplot2', 'purrr'))" -e "remotes::install_deps(dependencies = TRUE); remotes::install_github(c('r-lib/bench', 'lorenzwalthert/touchstone')); "
-          R CMD INSTALL .
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_github("lorenzwalthert/touchstone")
+          remotes::install_cran(c('ggplot2', 'dplyr'))
+          pkg <- basename(getwd())
+          if (pkg %in% rownames(installed.packages())) {
+            remove.packages(pkg)
+            cat('removed package ', pkg, '.', sep = "")
+          }
+        shell: Rscript {0}
       - name: Checkout benchmarking repo
         uses: actions/checkout@v2
         with:
-          repository: lorenzwalthert/here
-          ref: ca9c8e69c727def88d8ba1c8b85b0e0bcea87b3f
-          path: touchstone/sources/here
-      - name: Prepare PR comment
-        run: |
-          mkdir -p touchstone/sources
-          mkdir -p touchstone/pr-comment
-          mkdir -p touchstone/plots
-          echo "Here is how the current PR would change benchmark results when merged into $GITHUB_BASE_REF:" > touchstone/pr-comment/info.txt
-          echo "$GITHUB_EVENT_PULL_REQUEST_HEAD_SHA" >> touchstone/pr-comment/info.txt
+          repository: ${{ matrix.config.benchmarking_repo }}
+          ref: ${{ matrix.config.benchmarking_ref }}
+          path: ${{ matrix.config.benchmarking_path }}
       - name: Run benchmarks
-        run: Rscript 'touchstone/script.R'
+        run: Rscript -e 'touchstone::with_touchstone_lib("touchstone/script.R")'
+      - name: Save PR number
+        run: |
+          echo ${{ github.event.number }} > ./touchstone/pr-comment/NR
       - uses: actions/upload-artifact@v2
         with:
           name: visual-benchmarks
@@ -82,3 +104,7 @@ jobs:
           name: results
       - name: comment PR
         run: cat touchstone/pr-comment/info.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          name: pr
+          path: touchstone/pr-comment/

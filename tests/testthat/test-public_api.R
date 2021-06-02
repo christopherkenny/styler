@@ -137,11 +137,13 @@ test_that("styler can style Rmd file", {
 
 test_that("styler handles malformed Rmd file and invalid R code in chunk", {
   capture_output(expect_warning(
-    style_file(testthat_file("public-api", "xyzfile_rmd", "random3.Rmd"), strict = FALSE)
+    style_file(testthat_file("public-api", "xyzfile_rmd", "random4.Rmd"), strict = FALSE),
+    "3: "
   ))
 
   capture_output(expect_warning(
-    style_file(testthat_file("public-api", "xyzfile_rmd", "random4.Rmd"), strict = FALSE)
+    style_file(testthat_file("public-api", "xyzfile_rmd", "random7.Rmd"), strict = FALSE),
+    "Malformed file"
   ))
 })
 

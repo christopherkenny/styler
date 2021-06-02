@@ -20,3 +20,6 @@ revdep
 ^\.github/$
 ^touchstone$
 ^\.github$
+^LICENSE\.md$
+^inst/hooks/$
+^inst/WORDLIST$
