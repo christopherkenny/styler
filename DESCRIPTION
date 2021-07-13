@@ -1,7 +1,7 @@
 Type: Package
 Package: styler
 Title: Non-Invasive Pretty Printing of R Code
-Version: 1.4.1.9003
+Version: 1.5.1.9000
 Authors@R: 
     c(person(given = "Kirill",
              family = "Müller",
@@ -21,7 +21,7 @@ Imports:
     cli (>= 1.1.0),
     magrittr (>= 2.0.0),
     purrr (>= 0.2.3),
-    R.cache (>= 0.14.0),
+    R.cache (>= 0.15.0),
     rematch2 (>= 2.0.1),
     rlang (>= 0.1.1),
     rprojroot (>= 1.1),
