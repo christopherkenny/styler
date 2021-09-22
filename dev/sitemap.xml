@@ -253,6 +253,12 @@
     <loc>https://styler.r-lib.org/reference/find_tokens_to_update.html</loc>
   </url>
   <url>
+    <loc>https://styler.r-lib.org/reference/fix_quote.html</loc>
+  </url>
+  <url>
+    <loc>https://styler.r-lib.org/reference/fix_quote_two.html</loc>
+  </url>
+  <url>
     <loc>https://styler.r-lib.org/reference/fix_quotes.html</loc>
   </url>
   <url>
@@ -395,6 +401,9 @@
   </url>
   <url>
     <loc>https://styler.r-lib.org/reference/print.vertical.html</loc>
+  </url>
+  <url>
+    <loc>https://styler.r-lib.org/reference/quote_style.html</loc>
   </url>
   <url>
     <loc>https://styler.r-lib.org/reference/rds_to_version.html</loc>
