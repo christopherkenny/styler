@@ -78,7 +78,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">styler</a>
-        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.6.1.9000</span>
+        <span class="version label label-danger" data-toggle="tooltip" data-placement="bottom" title="In-development version">1.6.2.9000</span>
       </span>
     </div>
 
@@ -115,10 +115,16 @@
     <li class="divider"></li>
     <li class="dropdown-header">Developers</li>
     <li>
-      <a href="../articles/caching.html">Caching</a>
+      <a href="../articles/remove_rules.html">Remove rules</a>
     </li>
     <li>
       <a href="../articles/customizing_styler.html">Customizing styler</a>
+    </li>
+    <li>
+      <a href="../articles/distribute_custom_style_guides.html">Distribute custom style guides</a>
+    </li>
+    <li>
+      <a href="../articles/caching.html">Caching</a>
     </li>
   </ul>
 </li>
@@ -192,8 +198,8 @@
 
 <ul>
 <li><p>Set style: Select the style transformers to use. For flexibility, the user
-input is passed to the <code>transformers</code> argument, not the <code>style</code> argument, so
-entering <code><a href='tidyverse_style.html'>styler::tidyverse_style(scope = "spaces")</a></code> in the Addin is
+input is passed to the <code>transformers</code> argument, not the <code>style</code> argument,
+so entering <code><a href='tidyverse_style.html'>styler::tidyverse_style(scope = "spaces")</a></code> in the Addin is
 equivalent to <code><a href='style_text.html'>styler::style_text("1+1", scope = "spaces")</a></code> and
 <code><a href='style_text.html'>styler::style_text("1+1", transformers = styler::tidyverse_style(scope = "spaces"))</a></code>
 if the text to style is <code>1+1</code>. The style transformers are memorized

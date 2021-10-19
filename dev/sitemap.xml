@@ -427,9 +427,6 @@
     <loc>https://styler.r-lib.org/reference/relocate_eq_assign_one.html</loc>
   </url>
   <url>
-    <loc>https://styler.r-lib.org/reference/remind_removing_old_cache.html</loc>
-  </url>
-  <url>
     <loc>https://styler.r-lib.org/reference/remove_dont_mask.html</loc>
   </url>
   <url>
@@ -673,6 +670,9 @@
     <loc>https://styler.r-lib.org/articles/detect-alignment.html</loc>
   </url>
   <url>
+    <loc>https://styler.r-lib.org/articles/distribute_custom_style_guides.html</loc>
+  </url>
+  <url>
     <loc>https://styler.r-lib.org/articles/gsoc_proposal/data_structures.html</loc>
   </url>
   <url>
@@ -683,6 +683,9 @@
   </url>
   <url>
     <loc>https://styler.r-lib.org/articles/performance_improvements.html</loc>
+  </url>
+  <url>
+    <loc>https://styler.r-lib.org/articles/remove_rules.html</loc>
   </url>
   <url>
     <loc>https://styler.r-lib.org/articles/strict.html</loc>
