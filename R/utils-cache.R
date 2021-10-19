@@ -41,7 +41,7 @@ is_cached <- function(text,
 #' @param transformers A list of transformer functions, because we can only
 #'   know if text is already correct if we know which transformer function it
 #'   should be styled with.
-#' @param more_args A named vector coercible to it character that determine the
+#' @param more_specs A named vector coercible to character that determines the
 #'   styling but are style guide independent, such as `include_roxygen_examples`
 #'   or `base_indention`.
 #' @details
@@ -201,7 +201,7 @@ cache_dir_default <- function() {
 
 #' Create more specs
 #'
-#' Syntactic suggar for creating more specs. This is useful when we want to add
+#' Syntactic sugar for creating more specs. This is useful when we want to add
 #' more arguments (because we can search for this function in the source code).
 #' @keywords internal
 cache_more_specs <- function(include_roxygen_examples, base_indention) {

@@ -1,7 +1,7 @@
 Type: Package
 Package: styler
 Title: Non-Invasive Pretty Printing of R Code
-Version: 1.6.1.9000
+Version: 1.6.2.9000
 Authors@R: 
     c(person(given = "Kirill",
              family = "Müller",
@@ -46,7 +46,7 @@ VignetteBuilder:
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, roclets = c("rd", "namespace", "collate",
     "pkgapi::api_roclet"))
-RoxygenNote: 7.1.1.9001
+RoxygenNote: 7.1.2
 Collate: 
     'addins.R'
     'communicate.R'
