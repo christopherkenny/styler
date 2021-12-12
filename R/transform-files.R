@@ -88,7 +88,7 @@ make_transformer <- function(transformers,
   assert_transformers(transformers)
 
   function(text) {
-    text <- trimws(text, which = "right")
+    text <- ensure_last_n_empty(trimws(text, which = "right"), n = 0L)
     should_use_cache <- cache_is_activated()
 
     if (should_use_cache) {
@@ -232,7 +232,7 @@ parse_transform_serialize_r <- function(text,
     return("")
   }
   transformers <- transformers_drop(
-    if (getRversion() < 3.4) text else pd_nested$text[!pd_nested$is_cached],
+    pd_nested$text[!pd_nested$is_cached],
     transformers
   )
 
