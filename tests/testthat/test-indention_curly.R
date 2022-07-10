@@ -1,4 +1,4 @@
-context("indent curly brackets")
+
 
 test_that("indention on one-liner curley only is not changed", {
   expect_warning(test_collection("indention_curly_brackets",
@@ -19,6 +19,13 @@ test_that("indention with multi-line curley and round is correct", {
   expect_warning(test_collection("indention_curly_brackets",
     "multi_line_curly_round_only",
     transformer = style_text
+  ), NA)
+})
+
+test_that("custom indention for curly braces is corretct ", {
+  expect_warning(test_collection("indention_curly_brackets",
+    "custom",
+    transformer = style_text, indent_by = 4
   ), NA)
 })
 

@@ -55,7 +55,7 @@
 #' }
 set_line_break_before_curly_opening <- function(pd) {
   line_break_to_set_idx <- which(
-    (pd$token_after == "'{'") & (pd$token != "COMMENT")
+    (pd$token_after == "'{'") & !(pd$token %in% c("COMMENT", "EQ_FORMALS"))
   )
 
   line_break_to_set_idx <- setdiff(line_break_to_set_idx, nrow(pd))
@@ -89,8 +89,12 @@ set_line_break_before_curly_opening <- function(pd) {
     should_not_be_on_same_line <- is_not_curly_curly &
       ((!is_last_expr | linebreak_before_curly) & !no_line_break_before_curly_idx)
     should_not_be_on_same_line_idx <- line_break_to_set_idx[should_not_be_on_same_line]
-
-    pd$lag_newlines[1 + should_not_be_on_same_line_idx] <- 1L
+    if (is_function_dec(pd)) {
+      should_not_be_on_same_line_idx <- setdiff(1 + should_not_be_on_same_line_idx, nrow(pd))
+    } else {
+      should_not_be_on_same_line_idx <- 1 + should_not_be_on_same_line_idx
+    }
+    pd$lag_newlines[should_not_be_on_same_line_idx] <- 1L
 
     # non-curly expressions after curly expressions must have line breaks
     if (length(should_not_be_on_same_line_idx) > 0) {
@@ -119,13 +123,28 @@ set_line_break_around_comma_and_or <- function(pd, strict) {
 
   pd$lag_newlines[comma_with_line_break_that_can_be_removed_before] <- 0L
   pd$lag_newlines[lag(comma_with_line_break_that_can_be_removed_before)] <- 1L
+
+  comma_with_line_break_that_can_be_moved_two_tokens_left <- which(
+    (pd$token == "EQ_SUB") &
+      (pd$lag_newlines > 0) &
+      (pd$token_before != "COMMENT") &
+      (lag(pd$token) != "'['")
+  )
+
+  pd$lag_newlines[comma_with_line_break_that_can_be_moved_two_tokens_left] <- 0L
+  token_before <- map_int(
+    comma_with_line_break_that_can_be_moved_two_tokens_left,
+    previous_non_comment,
+    pd = pd
+  )
+  pd$lag_newlines[token_before] <- 1L
   pd
 }
 
 style_line_break_around_curly <- function(strict, pd) {
   if (is_curly_expr(pd) && nrow(pd) > 2) {
     closing_before <- pd$token == "'}'"
-    opening_before <- (pd$token == "'{'") & (pd$token_after != "COMMENT")
+    opening_before <- (pd$token == "'{'")
     to_break <- lag(opening_before, default = FALSE) | closing_before
     len_to_break <- sum(to_break)
     pd$lag_newlines[to_break] <- ifelse(rep(strict, len_to_break),
@@ -138,6 +157,8 @@ style_line_break_around_curly <- function(strict, pd) {
       pd$lag_newlines[is_else] <- 0L
       pd$spaces[c(is_else, FALSE)[-1]] <- 1L
     }
+    is_if_after_else <- pd$token == "ELSE" & pd$token_after == "IF"
+    pd$lag_newlines[lag(is_if_after_else)] <- 0L
   }
   pd
 }
@@ -349,7 +370,7 @@ set_linebreak_after_ggplot2_plus <- function(pd) {
     is_plus_or_comment_after_plus_before_fun_call <-
       lag(is_plus_raw, next_non_comment - first_plus - 1, default = FALSE) &
         (pd$token_after == "SYMBOL_FUNCTION_CALL" | pd$token_after == "SYMBOL_PACKAGE")
-    if (any(is_plus_or_comment_after_plus_before_fun_call)) {
+    if (any(is_plus_or_comment_after_plus_before_fun_call, na.rm = TRUE)) {
       gg_call <- pd$child[[previous_non_comment(pd, first_plus)]]$child[[1]]
       if (!is.null(gg_call) && isTRUE(gg_call$text[gg_call$token == "SYMBOL_FUNCTION_CALL"] == "ggplot")) {
         plus_without_comment_after <- setdiff(

@@ -171,6 +171,7 @@ style_empty <- function(text, base_indention = 0) {
     # transformer options
     use_raw_indention = FALSE,
     reindention       = specify_reindention(),
+    indent_character  = " ",
     NULL
   )
   transformed_text <- parse_transform_serialize_r(text,
@@ -192,6 +193,7 @@ style_op <- function(text, base_indention = 0) {
     # transformer options
     use_raw_indention = FALSE,
     reindention       = specify_reindention(),
+    indent_character  = " ",
     NULL
   )
 
@@ -210,19 +212,6 @@ style_op <- function(text, base_indention = 0) {
 testthat_file <- function(...) {
   file.path(rprojroot::find_testthat_root_file(), ...)
 }
-
-#' Convert a serialized R object to a certain version.
-#'
-#' Needed to make [testthat::expect_known_value()] work on R < 3.6.
-#' @param path A path to an rds file.
-#' @param version The target version.
-#' @keywords internal
-rds_to_version <- function(path, version = 2) {
-  readRDS(path) %>%
-    saveRDS(path, version = version)
-}
-
-
 
 #' Copy a file to a temporary directory
 #'
