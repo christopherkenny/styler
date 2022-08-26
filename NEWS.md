@@ -6,9 +6,19 @@ editor_options:
 
 # styler 1.7.0.9000 (Development version)
 
+**User-facing changes**
+
+-  `style_dir()` and `style_pkg()` now default to styling all supported file 
+   formats (`.R`, `.Rmd`, `.Rmarkdown`, `.Rnw`, and `.qmd`) in the (package) 
+   directory (\@IndrajeetPatil, #965).
+-  `style_pkg()` now excludes the auto-generated `R/cpp11.R` file (#977).
+-   Minimum needed R version is now bumped to `3.5` (\@IndrajeetPatil, #986).
+
 **Features**
 
 -   `filetype` `.qmd` is now supported, but not turned on by default (#931).
+-   alignment is now detected for function declaration in a similar way as for
+    function calls (#968).
 -   new R option `styler.ignore_alignment` controls if alignment should be
     detected (and preserved) or not (#932).
 
@@ -21,19 +31,31 @@ editor_options:
 
 -   There is now always one line break after `{` and before `#` (#916).
 
+-   Line breaks may be added to function calls to ensure indention symmetry for
+    round braces (#975).
+
 -   the cache is also invalidated on changing the stylerignore markers (#932).
 
 -   `{` is not put on a new line after `=` and in `function() {` for some edge
     cases (#939).
 
+-   `while ({})` statements are now handled the same way as function statements
+    with regards to breaking lines (#967).
+
 -   Parsing of {roxygen2} example comments now also works for edge cases when
     there is no literal code immediately following after the end of the example
     section (#940).
 
+-   Files with no tokens in it are now transformed into zero-byte files (#962).
+
 **Other**
 
--   Old (and outdated) vignettes have been removed (\@IndrajeetPatil, #955).
-    To access them, do `git checkout v1.0.0`.
+-   \@IndrajeetPatil is now a contributor to {styler}. Welcome and thanks for
+    everything you did so far! (#988).
+-   Non-exported and unused functions `odd()` and `even()` were removed 
+    (\@IndrajeetPatil, #989).
+-   Old (and outdated) vignettes have been removed (\@IndrajeetPatil, #955). To
+    access them, do `git checkout v1.0.0`.
 -   Upgrade testing infra to testthat 3e (\@IndrajeetPatil, #949).
 -   Minor improvements to the documentation (\@IndrajeetPatil, #958).
 -   All (R)md files in this project's source code are now formatted with
@@ -41,8 +63,9 @@ editor_options:
     the visual mode in RStudio (#941).
 -   Update {pkgdown} action to always build, but only deploy on default branch
     (#946).
--   turned off `styler.print.Vertical` in vignettes so ANSI output of {prettycode} 
-    not messing with {pkgdown} (\@IndrajeetPatil, #956, #957). 
+-   turned off `styler.print.Vertical` in vignettes so ANSI output of
+    {prettycode} not messing with {pkgdown} (\@IndrajeetPatil, #956, #957).
+-   Improved code quality by fixing {lintr} warnings (#960).
 
 # styler 1.7.0
 
@@ -610,7 +633,7 @@ Thanks to all contributors involved, in particular
 ## Adaption
 
 -   styler is now available through the pre-commit hook `style-files` in
-    <https://github.com/lorenzwalthert/pre-commit-hooks>.
+    <https://github.com/lorenzwalthert/precommit>.
 
 Thanks to all contributors involved, in particular
 

@@ -92,11 +92,13 @@ token_is_on_aligned_line <- function(pd_flat) {
     return(FALSE)
   }
 
-  pd_by_line <- alignment_drop_comments(pd_by_line) %>%
-    alignment_ensure_no_closing_brace(last_line_is_closing_brace_only)
+  pd_by_line <- alignment_drop_comments(pd_by_line)
   if (length(pd_by_line) < 1) {
     return(TRUE)
   }
+  pd_by_line <- alignment_drop_last_expr(pd_by_line) %>%
+    alignment_ensure_no_closing_brace(last_line_is_closing_brace_only)
+
   pd_by_line <- pd_by_line %>%
     alignment_ensure_trailing_comma()
   # now, pd only contains arguments separated by values, ideal for iterating
@@ -116,7 +118,8 @@ token_is_on_aligned_line <- function(pd_flat) {
 
     # first col has no leading ,
     current_col <- nchar(by_line) - as.integer(column > 1)
-    # Problem `by_line` counting from comma before column 3, previous_line counting 1 space before ~
+    # Problem `by_line` counting from comma before column 3, previous_line
+    # counting 1 space before ~
     if (column > 1) {
       previous_line <- previous_line[
         intersect(names(previous_line), names(by_line))

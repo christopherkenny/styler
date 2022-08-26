@@ -28,8 +28,11 @@ config
 CONST
 coventions
 covr
+cpp
 cran
 cre
+ctb
+cynkra
 datastructures
 dec
 deps
@@ -73,6 +76,7 @@ ggplot
 ghclass
 github
 gitsum
+gmail
 grkstyle
 GSOC
 hashFiles
@@ -83,6 +87,7 @@ https
 icloud
 ifelse
 impl
+Indrajeet
 infinitively
 initializer
 inode
@@ -95,6 +100,7 @@ ixmypi
 ized
 Jupyterlab
 Kirill
+kirill
 knitr
 krlmlr
 labelled
@@ -128,6 +134,7 @@ nph
 NUM
 oldrel
 oneliner
+ORCID
 os
 ourself
 packagemanager
@@ -137,6 +144,9 @@ params
 paren
 parsable
 parsesum
+Patil
+patilindrajeet
+patilindrajeets
 pgkdown
 pkgapi
 pkgdown
@@ -148,6 +158,8 @@ prefill
 prettycode
 PRs
 purrr
+qmd
+Qmd
 questionr
 rcmdcheck
 RcppExports

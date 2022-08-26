@@ -12,8 +12,7 @@
 #' @param pd_nested A nested parse table to partially flatten.
 #' @keywords internal
 flatten_operators <- function(pd_nested) {
-  pd_nested %>%
-    post_visit(c(flatten_operators_one))
+  post_visit_one(pd_nested, flatten_operators_one)
 }
 
 #' Flatten one level of nesting with its child
@@ -27,7 +26,8 @@ flatten_operators <- function(pd_nested) {
 flatten_operators_one <- function(pd_nested) {
   pd_token_left <- c(special_token, "PIPE", math_token, "'$'")
   pd_token_right <- c(
-    special_token, "PIPE", "LEFT_ASSIGN", if (parser_version_get() > 1) "EQ_ASSIGN",
+    special_token, "PIPE", "LEFT_ASSIGN",
+    if (parser_version_get() > 1) "EQ_ASSIGN",
     "'+'", "'-'", "'~'"
   )
   pd_nested %>%
@@ -56,7 +56,9 @@ flatten_pd <- function(pd_nested, token, child_token = token, left = TRUE) {
   if (length(token_pos_candidates) == 0) {
     return(pd_nested)
   }
-  token_pos <- token_pos_candidates[ifelse(left, 1, length(token_pos_candidates))]
+  token_pos <- token_pos_candidates[
+    ifelse(left, 1, length(token_pos_candidates))
+  ]
   if (left) {
     pos <- previous_non_comment(pd_nested, token_pos)
   } else {
@@ -141,8 +143,7 @@ wrap_expr_in_expr <- function(pd) {
 #' @keywords internal
 relocate_eq_assign <- function(pd) {
   if (parser_version_get() < 2) {
-    pd %>%
-      post_visit(c(relocate_eq_assign_nest))
+    post_visit_one(pd, relocate_eq_assign_nest)
   } else {
     pd
   }
