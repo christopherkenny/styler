@@ -14,14 +14,14 @@ NULL
 indent_without_paren_for_while_fun <- function(pd, indent_by) {
   tokens <- c("FOR", "WHILE", "FUNCTION")
   nrow <- nrow(pd)
-  if (!(pd$token[1] %in% tokens)) {
+  if (!(pd$token[1L] %in% tokens)) {
     return(pd)
   }
   if (is_curly_expr(pd$child[[nrow]])) {
     return(pd)
   }
 
-  if (pd$newlines[length(pd$newlines) - 1] == 0) {
+  if (pd$newlines[length(pd$newlines) - 1L] == 0L) {
     return(pd)
   }
   pd$indent[nrow] <- indent_by
@@ -29,42 +29,38 @@ indent_without_paren_for_while_fun <- function(pd, indent_by) {
 }
 
 #' @describeIn update_indention Is used to indent if and if-else statements.
-#' @importFrom rlang seq2
+#'
 #' @keywords internal
 indent_without_paren_if_else <- function(pd, indent_by) {
-  expr_after_if <- next_non_comment(pd, which(pd$token == "')'")[1])
-  is_if <- pd$token[1] %in% "IF"
-  has_if_without_curly <-
-    is_if && pd$child[[expr_after_if]]$token[1] != "'{'"
+  expr_after_if <- next_non_comment(pd, which(pd$token == "')'")[1L])
+  is_if <- pd$token[1L] == "IF"
   if (!is_if) {
     return(pd)
   }
   needs_indention_now <- pd$lag_newlines[
     next_non_comment(pd, which(pd$token == "')'"))
-  ] > 0
+  ] > 0L
 
   if (needs_indention_now) {
     pd$indent[expr_after_if] <- indent_by
   }
 
-
-
   else_idx <- which(pd$token == "ELSE")
-  if (length(else_idx) == 0) {
+  if (length(else_idx) == 0L) {
     return(pd)
   }
   expr_after_else_idx <- next_non_comment(pd, else_idx)
   has_else_without_curly_or_else_chid <-
     any(pd$token == "ELSE") &&
-      pd$child[[expr_after_else_idx]]$token[1] != "'{'" &&
-      pd$child[[expr_after_else_idx]]$token[1] != "IF"
+      pd$child[[expr_after_else_idx]]$token[1L] != "'{'" &&
+      pd$child[[expr_after_else_idx]]$token[1L] != "IF"
 
   needs_indention_now <- pd$lag_newlines[
     next_non_comment(pd, which(pd$token == "ELSE"))
-  ] > 0
+  ] > 0L
 
   if (has_else_without_curly_or_else_chid && needs_indention_now) {
-    pd$indent[seq(else_idx + 1, nrow(pd))] <- indent_by
+    pd$indent[seq(else_idx + 1L, nrow(pd))] <- indent_by
   }
   pd
 }
@@ -91,8 +87,15 @@ indent_without_paren_if_else <- function(pd, indent_by) {
 #' example in if-else expressions, this is not the case and indenting
 #' everything between '(' and the penultimate token would result in the wrong
 #' formatting.
-#' @importFrom rlang seq2
+#' @section Handing of `[[`:
+#' Since text `[[` has token `"LBB"` and text `]]` is parsed as two independent
+#' `]` (see 'Examples'), indention has to stop at the first `]`.
+# one token earlier
+#'
 #' @keywords internal
+#' @examples
+#' styler:::parse_text("a[1]")
+#' styler:::parse_text("a[[1\n]]")
 compute_indent_indices <- function(pd,
                                    token_opening,
                                    token_closing = NULL) {
@@ -101,15 +104,16 @@ compute_indent_indices <- function(pd,
   needs_indention <- needs_indention(pd, potential_triggers,
     other_trigger_tokens = c("EQ_SUB", "EQ_FORMALS")
   )
-  trigger <- potential_triggers[needs_indention][1]
+  trigger <- potential_triggers[needs_indention][1L]
   if (is.na(trigger)) {
-    return(numeric(0))
+    return(numeric(0L))
   }
-  start <- trigger + 1
+  start <- trigger + 1L
   if (is.null(token_closing)) {
     stop <- npd
   } else {
-    stop <- last(which(pd$token %in% token_closing)[needs_indention]) - 1
+    offset <- if (any(pd$token == "LBB")) 2L else 1L
+    stop <- last(which(pd$token %in% token_closing)[needs_indention]) - offset
   }
 
   seq2(start, stop)
@@ -157,7 +161,7 @@ needs_indention <- function(pd,
 #'   if on the same line as the token corresponding to `potential_trigger` and
 #'   directly followed by a line break.
 #' @return `TRUE` if indention is needed, `FALSE` otherwise.
-#' @importFrom rlang seq2
+#'
 #' @keywords internal
 #' @examples
 #' style_text(c(
@@ -167,7 +171,7 @@ needs_indention <- function(pd,
 needs_indention_one <- function(pd,
                                 potential_trigger_pos,
                                 other_trigger_tokens) {
-  before_first_break <- which(pd$lag_newlines > 0)[1] - 1L
+  before_first_break <- which(pd$lag_newlines > 0L)[1L] - 1L
   if (is.na(before_first_break)) {
     return(FALSE)
   }
@@ -202,7 +206,6 @@ needs_indention_one <- function(pd,
 #' Sets the column `multi_line` in `pd` by checking row-wise whether any child
 #' of a token is a multi-line token.
 #' @param pd A parse table.
-#' @importFrom purrr map_lgl
 #' @keywords internal
 set_multi_line <- function(pd) {
   pd$multi_line <- unname(map_int(pd$child, pd_multi_line))
@@ -218,7 +221,7 @@ set_multi_line <- function(pd) {
 #' @param pd A parse table.
 #' @keywords internal
 pd_is_multi_line <- function(pd) {
-  pd_multi_line(pd) > 0
+  pd_multi_line(pd) > 0L
 }
 
 pd_multi_line <- function(pd) {
@@ -240,7 +243,7 @@ pd_multi_line <- function(pd) {
 #' @seealso choose_indention
 #' @keywords internal
 update_newlines <- function(pd) {
-  seq_pd <- seq_len(nrow(pd) - 1)
-  pd$newlines[seq_pd] <- pd$lag_newlines[seq_pd + 1]
+  seq_pd <- seq_len(nrow(pd) - 1L)
+  pd$newlines[seq_pd] <- pd$lag_newlines[seq_pd + 1L]
   pd
 }

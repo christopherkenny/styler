@@ -10,7 +10,7 @@ lead <- function(x, n = 1L, default = NA) {
   c(x[-seq_len(n)], rep(default, n))
 }
 
-#' @importFrom rlang abort
+
 arrange <- function(.data, ...) {
   ord <- eval(substitute(order(...)), .data, parent.frame())
   .data[ord, , drop = FALSE]
@@ -26,7 +26,7 @@ arrange_pos_id <- function(data) {
 
 bind_rows <- function(x, y = NULL, ...) {
   if (is.null(x) && is.null(y)) {
-    return(new_tibble(list(), nrow = 0))
+    return(new_styler_df(list()))
   }
   if (is.null(x)) {
     if (inherits(y, "data.frame")) {
@@ -62,10 +62,10 @@ left_join <- function(x, y, by) {
 
   res <- merge(x, y, by.x = by_x, by.y = by_y, all.x = TRUE, sort = FALSE) %>%
     arrange_pos_id()
-  res <- new_tibble(res, nrow = nrow(res))
+  res <- new_styler_df(res)
   # dplyr::left_join set unknown list columns to NULL, merge sets them
   # to NA
-  if (exists("child", res) && any(is.na(res$child))) {
+  if (exists("child", res) && anyNA(res$child)) {
     res$child[is.na(res$child)] <- list(NULL)
   }
   res
@@ -80,9 +80,9 @@ slice <- function(.data, ...) {
   .data[c(...), , drop = FALSE]
 }
 
-#' @importFrom purrr as_mapper map
+# TODO: Use `purrr::map_dfr()` when it stops implicitly relying on `{dplyr}`
 map_dfr <- function(.x, .f, ..., .id = NULL) {
-  .f <- as_mapper(.f, ...)
+  .f <- purrr::as_mapper(.f, ...)
   res <- map(.x, .f, ...)
   bind_rows(res, .id = .id)
 }

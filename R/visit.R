@@ -9,7 +9,6 @@
 #' @param pd_nested A nested parse table.
 #' @inheritParams visit_one
 #' @family visitors
-#' @importFrom purrr map
 #' @name visit
 #' @keywords internal
 NULL
@@ -20,7 +19,7 @@ pre_visit <- function(pd_nested, funs) {
   if (is.null(pd_nested)) {
     return()
   }
-  if (length(funs) == 0) {
+  if (length(funs) == 0L) {
     return(pd_nested)
   }
   pd_nested <- visit_one(pd_nested, funs)
@@ -61,7 +60,7 @@ post_visit <- function(pd_nested, funs) {
   if (is.null(pd_nested)) {
     return()
   }
-  if (length(funs) == 0) {
+  if (length(funs) == 0L) {
     return(pd_nested)
   }
 
@@ -120,7 +119,6 @@ visit_one <- function(pd_flat, funs) {
 #' relative in `pd_nested`) will be converted into absolute.
 #' @inherit context_towards_terminals
 #' @seealso context_towards_terminals visitors
-#' @importFrom purrr pmap
 #' @keywords internal
 context_to_terminals <- function(pd_nested,
                                  outer_lag_newlines,
@@ -177,7 +175,7 @@ context_towards_terminals <- function(pd_nested,
   )
   ref_pos_id_is_na <- !is.na(pd_nested$indention_ref_pos_id)
   pd_nested$indention_ref_pos_id[!ref_pos_id_is_na] <- outer_indention_refs
-  pd_nested$lag_newlines[1] <- pd_nested$lag_newlines[1] + outer_lag_newlines
+  pd_nested$lag_newlines[1L] <- pd_nested$lag_newlines[1L] + outer_lag_newlines
   pd_nested$spaces[nrow(pd_nested)] <-
     pd_nested$spaces[nrow(pd_nested)] + outer_spaces
   pd_nested
@@ -228,11 +226,10 @@ enrich_terminals <- function(flattened_pd, use_raw_indention = FALSE) {
   groups <- flattened_pd$line1
   flattened_pd <- flattened_pd %>%
     split(groups) %>%
-    lapply(function(.x) {
+    map_dfr(function(.x) {
       .x$col2 <- cumsum(.x$nchar + .x$lag_spaces)
       .x
-    }) %>%
-    bind_rows()
+    })
   flattened_pd$col1 <- flattened_pd$col2 - flattened_pd$nchar
   flattened_pd
 }
@@ -258,7 +255,7 @@ enrich_terminals <- function(flattened_pd, use_raw_indention = FALSE) {
 #' @keywords internal
 choose_indention <- function(flattened_pd, use_raw_indention) {
   if (!use_raw_indention) {
-    flattened_pd$lag_spaces <- ifelse(flattened_pd$lag_newlines > 0,
+    flattened_pd$lag_spaces <- ifelse(flattened_pd$lag_newlines > 0L,
       flattened_pd$indent,
       flattened_pd$lag_spaces
     )

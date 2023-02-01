@@ -19,7 +19,7 @@ line trigger.
 }
 }
 \examples{
-\dontrun{
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 tryCatch(
   {
     f(8)
@@ -31,11 +31,11 @@ testthat("braces braces are cool", {
   code(to = execute)
 })
 call2(
-  x = 2,
-  {
+  x = 2, {
     code(to = execute)
   },
-  c = { # this is the named case
+  c = {
+    # this is the named case
     g(x = 7)
   }
 )
@@ -61,6 +61,6 @@ data \%>\%
   {
     cor(.$col1, .$col2, use = "complete.obs")
   }
-}
+\dontshow{\}) # examplesIf}
 }
 \keyword{internal}

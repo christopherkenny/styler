@@ -39,11 +39,11 @@ create_tokens <- function(tokens,
                           block = NA,
                           is_cached = FALSE) {
   len_text <- length(texts)
-  new_tibble(
+  new_styler_df(
     list(
       token = tokens,
       text = texts,
-      short = substr(texts, 1, 5),
+      short = substr(texts, 1L, 5L),
       lag_newlines = lag_newlines,
       newlines = lead(lag_newlines),
       pos_id = pos_ids,
@@ -59,8 +59,7 @@ create_tokens <- function(tokens,
       stylerignore = stylerignore,
       block = block,
       is_cached = is_cached
-    ),
-    nrow = len_text
+    )
   )
 }
 
@@ -78,11 +77,15 @@ create_tokens <- function(tokens,
 #' create one. The validation is done with [validate_new_pos_ids()]
 #' @family token creators
 #' @keywords internal
-create_pos_ids <- function(pd, pos, by = 0.1, after = FALSE, n = 1) {
-  direction <- ifelse(after, 1L, -1L)
+create_pos_ids <- function(pd, pos, by = 0.1, after = FALSE, n = 1L) {
+  direction <- if (after) {
+    1L
+  } else {
+    -1L
+  }
   first <- find_start_pos_id(pd, pos, by, direction, after)
   new_ids <- seq(first,
-    to = first + direction * (n - 1) * by, by = by * direction
+    to = first + direction * (n - 1L) * by, by = by * direction
   )
   validate_new_pos_ids(new_ids, after)
   new_ids
@@ -106,13 +109,28 @@ find_start_pos_id <- function(pd,
                               candidates = NULL) {
   candidates <- append(candidates, pd$pos_id[pos])
   if (is.null(pd$child[[pos]])) {
-    ifelse(after, max(candidates), min(candidates)) + by * direction
+    start_pos_idx <- if (after) {
+      max(candidates)
+    } else {
+      min(candidates)
+    }
+    start_pos_idx <- start_pos_idx + (by * direction)
   } else {
-    find_start_pos_id(
-      pd$child[[pos]], ifelse(after, nrow(pd$child[[pos]]), 1L),
-      by, direction, after, candidates
+    start_pos_idx <- find_start_pos_id(
+      pd$child[[pos]],
+      if (after) {
+        nrow(pd$child[[pos]])
+      } else {
+        1L
+      },
+      by,
+      direction,
+      after,
+      candidates
     )
   }
+
+  start_pos_idx
 }
 
 
@@ -126,11 +144,16 @@ find_start_pos_id <- function(pd,
 #' @param new_ids A vector with new ids
 #' @param after Whether the ids are created with `after = TRUE` (and hence
 #' should be in the range x.0-x.45) or not.
-#' @importFrom rlang abort
+
 #' @family token creators
 #' @keywords internal
 validate_new_pos_ids <- function(new_ids, after) {
-  ref <- ifelse(after, floor(new_ids), ceiling(new_ids))
+  ref <- if (after) {
+    floor(new_ids)
+  } else {
+    ceiling(new_ids)
+  }
+
   if (any(abs(new_ids - ref) > 0.5)) abort("too many ids assigned.")
 }
 
@@ -145,27 +168,27 @@ validate_new_pos_ids <- function(new_ids, after) {
 #' @keywords internal
 wrap_expr_in_curly <- function(pd,
                                stretch_out = c(FALSE, FALSE),
-                               space_after = 1) {
+                               space_after = 1L) {
   if (is_curly_expr(pd)) {
     return(pd)
   }
-  if (stretch_out[1]) {
-    pd$lag_newlines[1] <- 1L
+  if (stretch_out[1L]) {
+    pd$lag_newlines[1L] <- 1L
   }
 
   opening <- create_tokens("'{'", "{",
-    pos_ids = create_pos_ids(pd, 1, after = FALSE),
-    spaces = 1 - as.integer(stretch_out[1]),
-    stylerignore = pd$stylerignore[1],
-    indents = pd$indent[1]
+    pos_ids = create_pos_ids(pd, 1L, after = FALSE),
+    spaces = 1L - as.integer(stretch_out[1L]),
+    stylerignore = pd$stylerignore[1L],
+    indents = pd$indent[1L]
   )
 
   closing <- create_tokens(
     "'}'", "}",
-    spaces = space_after, lag_newlines = as.integer(stretch_out[2]),
+    spaces = space_after, lag_newlines = as.integer(stretch_out[2L]),
     pos_ids = create_pos_ids(pd, nrow(pd), after = TRUE),
-    stylerignore = pd$stylerignore[1],
-    indents = pd$indent[1]
+    stylerignore = pd$stylerignore[1L],
+    indents = pd$indent[1L]
   )
 
   bind_rows(opening, pd, closing) %>%

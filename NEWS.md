@@ -1,71 +1,211 @@
----
-editor_options: 
-  markdown: 
-    wrap: 79
----
+<!-- NEWS.md is maintained by https://cynkra.github.io/fledge, do not edit -->
 
-# styler 1.7.0.9000 (Development version)
-
-**User-facing changes**
-
--  `style_dir()` and `style_pkg()` now default to styling all supported file 
-   formats (`.R`, `.Rmd`, `.Rmarkdown`, `.Rnw`, and `.qmd`) in the (package) 
-   directory (\@IndrajeetPatil, #965).
--  `style_pkg()` now excludes the auto-generated `R/cpp11.R` file (#977).
--   Minimum needed R version is now bumped to `3.5` (\@IndrajeetPatil, #986).
+# styler 1.9.0
 
 **Features**
 
--   `filetype` `.qmd` is now supported, but not turned on by default (#931).
--   alignment is now detected for function declaration in a similar way as for
-    function calls (#968).
--   new R option `styler.ignore_alignment` controls if alignment should be
-    detected (and preserved) or not (#932).
+- The tidyverse recently introduced double-indention for function declarations
+  that don't fit on one line. It indents two levels, i.e. 4 spaces if you `indent_by` two spaces.
 
-**Bug Fixes**
+```r
+# old style: remains compliant and won't be re-styled
+my_fun <- function(long_argument = 2,
+                   indent_up_to_first = "x") {
+  # ...
+}
 
--   alignment is detected in `tibble::tribble()` (and similar) calls with more
-    than 3 columns when left aligned (#945).
+# new style: now also compliant and won't be re-styled
+my_fun <- function(
+    long_argument = 2,
+    indent_double = "x") {
+  # ...
+}
+```
 
--   If there are only empty lines in a code chunk, they are all removed (#936).
+You can also use the R package [{codegrip}](https://github.com/lionel-/codegrip)
+to toggle between the two modes (#1083).
 
--   There is now always one line break after `{` and before `#` (#916).
+**Bug fixes**
 
--   Line breaks may be added to function calls to ensure indention symmetry for
-    round braces (#975).
+- Previously styled code that is now stylerignored should always be formatted 
+  correctly. It boils down to the requirement that stylerignore sequences must 
+  always be in the same block (#1082).
+- styling around `{{` and comments now yields parsable output (#1088).
+- trailing blank lines in roxygen code examples are removed (#1085).
+- roxygen code examples that don't have any code following after them are now 
+  also styled (#1067).
 
--   the cache is also invalidated on changing the stylerignore markers (#932).
+**Other user-facing changes**
 
--   `{` is not put on a new line after `=` and in `function() {` for some edge
-    cases (#939).
+- Less noisy communication if R option `styler.cache_root` is not set (#1063).
 
--   `while ({})` statements are now handled the same way as function statements
-    with regards to breaking lines (#967).
+**Infrastructure**
 
--   Parsing of {roxygen2} example comments now also works for edge cases when
-    there is no literal code immediately following after the end of the example
-    section (#940).
+- use {lintr} config (#1057, #1059) and pre-commit hook (#1064).
+- use new {pkgdown} hook, check for parsable yaml and mixed line ending (#1080,
+  #1081).
+- update GitHub Actions workflow versions one time (#1073) and add dependabot 
+  for the future (#1974).
+- bdr test for additional examples (#1068).
+- check for link rot regularly (#1077, #1086).
 
--   Files with no tokens in it are now transformed into zero-byte files (#962).
+**Internals**
+
+- replace retired `purrr::when()` with `if` statements (#1066).
+- more integer literals (#1054).
+- Consistently use `@examplesIf` for conditionally running examples (#1071).
+- document imports in a single file (#1060).
+- format YAML files (#1061).
+
+A big shout out to anyone who contributed to this release:
+
+[&#x0040;balthasars](https://github.com/balthasars),
+[&#x0040;hadley](https://github.com/hadley), 
+[&#x0040;IndrajeetPatil](https://github.com/IndrajeetPatil), 
+[&#x0040;juliangrimm225](https://github.com/) and 
+[&#x0040;krlmlr](https://github.com/krlmlr).
+
+# styler 1.8.1 
+
+**Features**
+
+- Expose internals used with other style guides (\@Robinlovelace + 
+  collaborators, #1043, #1052).
+
 
 **Other**
 
--   \@IndrajeetPatil is now a contributor to {styler}. Welcome and thanks for
-    everything you did so far! (#988).
--   Non-exported and unused functions `odd()` and `even()` were removed 
-    (\@IndrajeetPatil, #989).
--   Old (and outdated) vignettes have been removed (\@IndrajeetPatil, #955). To
-    access them, do `git checkout v1.0.0`.
--   Upgrade testing infra to testthat 3e (\@IndrajeetPatil, #949).
--   Minor improvements to the documentation (\@IndrajeetPatil, #958).
--   All (R)md files in this project's source code are now formatted with
-    default pandoc markdown formatter. This conversion is required when using
-    the visual mode in RStudio (#941).
--   Update {pkgdown} action to always build, but only deploy on default branch
-    (#946).
--   turned off `styler.print.Vertical` in vignettes so ANSI output of
-    {prettycode} not messing with {pkgdown} (\@IndrajeetPatil, #956, #957).
--   Improved code quality by fixing {lintr} warnings (#960).
+- Bump minimal version requirement on {withr} as `...` in 
+  `withr::local_options()` was introduced only in v.2.3.0 (#1051).
+- Rename internal function `set_linebreak_after_ggplot2_plus()` to 
+  `set_line_break_after_ggplot2_plus()` for consistency (\@Polkas, #1049).
+- Reformat contributing guidelines (#1047).
+- Improve YAML formatting for pkgdown (#1042).
+- Simplify caching internal's conditionals with `rlang::%||%` (#1041).
+- Only run {pkgapi} if available (#1039).
+- Typos (\@MichaelChirico, #1038)
+
+This release was requested by CRAN to resolve an R CMD Check note (#1044). 
+A big hand to everyone who made this release possible: 
+
+[&#x0040;DaveJarvis](https://github.com/DaveJarvis), 
+[&#x0040;IndrajeetPatil](https://github.com/IndrajeetPatil), 
+[&#x0040;lorenzwalthert](https://github.com/lorenzwalthert), 
+[&#x0040;MichaelChirico](https://github.com/MichaelChirico), 
+[&#x0040;Polkas](https://github.com/Polkas), and 
+[&#x0040;Robinlovelace](https://github.com/Robinlovelace).
+
+
+# styler 1.8.0
+
+{styler} 1.8.0 comes with a host of new features, around 40% speed improvement,
+bug fixes and the removal of 8 recursive dependencies. We also welcome 
+\@IndrajeetPatil as a new contributor to {styler}, who has contributed 
+significantly to this and and previous releases.
+
+**Features**
+
+- `style_dir()` and `style_pkg()` now default to styling all supported file
+  formats (`.R`, `.Rmd`, `.Rmarkdown`, `.Rnw`, and `.qmd`) in the (package)
+  directory (#965, #931, #1033).
+- `style_pkg()` now excludes the auto-generated `R/cpp11.R` file (#977).
+- minimum needed R version is now bumped to `3.5` (#986).
+
+- alignment is now detected for function declaration in a similar way as for
+  function calls (#968).
+- new R option `styler.ignore_alignment` controls if alignment should be
+  detected (and preserved) or not (#932).
+
+
+**Bug Fixes**
+
+- alignment is detected in `tibble::tribble()` (and similar) calls with more
+  than 3 columns when left aligned (#945).
+
+- fix alignment detection for one column, mixed named/unnamed (#1035).
+
+- if there are only empty lines in a code chunk, they are all removed (#936).
+
+- apply rules for [ to [[ and its closing counterpair (#1030)
+
+- there is now at most one line break after `{` and before `#` (#952, #1022).
+
+- line breaks may be added to function calls to ensure indention symmetry for
+  round braces (#975).
+
+- the cache is also invalidated on changing the stylerignore markers (#932).
+
+- `{` is not put on a new line after `=` and in `function() {` for some edge
+cases (#939).
+
+- `while ({})` statements are now handled the same way as function statements
+  with regards to breaking lines (#967).
+
+- parsing of {roxygen2} example comments now also works for edge cases when
+  there is no literal code immediately following after the end of the example
+  section (#940).
+
+- files with no tokens in it are now transformed into zero-byte files (#962).
+
+**Documentation**
+
+- old (and outdated) vignettes have been removed (#955). To access them, do 
+  `git checkout v1.0.0`.
+- minor improvements to the documentation (#958).
+- turned off `styler.colored_print.vertical` in vignettes so ANSI output of
+ {prettycode} not messing with {pkgdown} (#956, #957).
+
+
+**Performance and code quality improvements**
+
+- use integer literals and avoid coercions where needed (#994).
+- don't preserve names for `unlist()` (#998).
+- remove unused variables (#999).
+- get rid of lints with performance implications (#1000).
+- use more efficient match() alternative (#1001).
+- don't use `nrow` arg in `new_tibble()` calls (#1003).
+- performance improvements with `if()` + `else()` instead of `ifelse()` (#1006).
+- replace tibbles with data frames to improve performance (#1007). 
+- simplify `styler_df()` signature (#1009).
+- minor cleanup (#1016).
+- non-exported and unused functions `odd()` and `even()` were removed
+ (#989).
+- all (R)md files in this project's source code are now formatted with default 
+  pandoc markdown formatter. This conversion is required when using the visual 
+  mode in RStudio (#941).
+- improved code quality by fixing {lintr} warnings (#960, #1028).
+
+
+**Dependency related changes**
+
+In total, 8 recursive dependencies are removed: {ellipsis}, {pillar}, 
+{rematch2}, {tibble}, {utf8}, {fansi}, {lifecycle}, {pkgconfig}.
+
+- don't import entire tibble package (#1007).
+- drop {rematch2} dependency (#1011).
+
+
+**Infrastructure**
+
+- upgrade testing infra to testthat 3e (#949).
+- run tests in parallel (#978).
+- run some tests sequentially (#1031)
+- better stack tracing for profiling (#979, #980).
+- add flags to skip code coverage for zzz.R (#1005).
+- error now on R CMD note (#987).
+- test on latest Ubuntu instead of Ubuntu 18.04 (#982).
+- use latest GitHub Actions for R (#1034).
+- update {pkgdown} action to always build, but only deploy on default branch 
+  (#946).
+- remove pre-commit push hook for news entry (#1023).
+
+A big hand to everyone who made this release possible: 
+
+[&#x0040;behrman](https://github.com/behrman), 
+[&#x0040;EngineerDanny](https://github.com/EngineerDanny), [&#x0040;gavinsimpson](https://github.com/gavinsimpson), [&#x0040;IndrajeetPatil](https://github.com/IndrajeetPatil), [&#x0040;jabenninghoff](https://github.com/jabenninghoff), 
+[&#x0040;krlmlr](https://github.com/krlmlr), 
+[&#x0040;lorenzwalthert](https://github.com/lorenzwalthert), [&#x0040;MichaelChirico](https://github.com/MichaelChirico), [&#x0040;moodymudskipper](https://github.com/moodymudskipper), [&#x0040;RaymondBalise](https://github.com/RaymondBalise), [&#x0040;Robinlovelace](https://github.com/Robinlovelace), [&#x0040;sebffischer](https://github.com/sebffischer), 
+[&#x0040;sgorm123](https://github.com/sgorm123), [&#x0040;stefanoborini](https://github.com/stefanoborini), and [&#x0040;wdkrnls](https://github.com/wdkrnls).
 
 # styler 1.7.0
 

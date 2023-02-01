@@ -1,8 +1,6 @@
 #' Apply a function to the contents of a file
 #'
 #' Transforms a file with a function.
-#' @importFrom magrittr set_names
-#' @importFrom rlang abort
 #' @inheritParams transform_utf8_one
 #' @keywords internal
 transform_utf8 <- function(path, fun, dry) {
@@ -19,17 +17,16 @@ transform_utf8 <- function(path, fun, dry) {
 #'   latter returns an error if the input code is not identical to the result
 #'   of styling. "off", the default, writes back if the input and output of
 #'   styling are not identical.
-#' @importFrom rlang with_handlers warn
 #' @keywords internal
 transform_utf8_one <- function(path, fun, dry) {
   rlang::arg_match(dry, c("on", "off", "fail"))
-  with_handlers(
+  rlang::with_handlers(
     {
       file_with_info <- read_utf8(path)
       # only write back when changed OR when there was a missing newline
       new <- unclass(fun(file_with_info$text))
       if (identical(new, "")) {
-        new <- character(0)
+        new <- character(0L)
       }
       identical_content <- identical(file_with_info$text, new)
       identical <- identical_content && !file_with_info$missing_EOF_line_break
@@ -88,7 +85,7 @@ read_utf8 <- function(path) {
   } else if (inherits(out, "warning")) {
     list(
       text = read_utf8_bare(path, warn = FALSE),
-      missing_EOF_line_break = grepl("incomplete", out$message)
+      missing_EOF_line_break = grepl("incomplete", out$message, fixed = TRUE)
     )
   }
 }
@@ -100,13 +97,13 @@ read_utf8_bare <- function(con, warn = TRUE) {
   x <- readLines(con, encoding = "UTF-8", warn = warn)
   i <- invalid_utf8(x)
   n <- length(i)
-  if (n > 0) {
+  if (n > 0L) {
     stop(
       c(
         "The file ", con, " is not encoded in UTF-8. ",
         "These lines contain invalid UTF-8 characters: "
       ),
-      paste(c(utils::head(i), if (n > 6) "..."), collapse = ", ")
+      toString(c(utils::head(i), if (n > 6L) "..."))
     )
   }
   x
