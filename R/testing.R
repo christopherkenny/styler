@@ -16,8 +16,6 @@
 #' last dash and adding -out.R. In contrast to older versions of this
 #' function, every *-out.R file has just one in file.
 #' @inheritParams transform_and_check
-#' @importFrom purrr flatten_chr pwalk map
-#' @importFrom rlang abort
 #' @keywords internal
 test_collection <- function(test, sub_test = NULL,
                             dry = "off",
@@ -37,7 +35,7 @@ test_collection <- function(test, sub_test = NULL,
     full.names = FALSE
   )
 
-  if (length(in_names) < 1) abort("no items to check")
+  if (length(in_names) < 1L) abort("no items to check")
 
   out_names <- construct_out(in_names)
 
@@ -101,8 +99,6 @@ construct_tree <- function(in_paths, suffix = "_tree") {
 #' @param ... Parameters passed to transformer function.
 #' @param out_tree Name of tree file if written out.
 #' @inheritParams transform_utf8
-#' @importFrom utils write.table
-#' @importFrom rlang warn
 #' @keywords internal
 transform_and_check <- function(in_item, out_item,
                                 in_name = in_item, out_name = out_item,
@@ -113,7 +109,7 @@ transform_and_check <- function(in_item, out_item,
   read_in <- read_utf8_bare(in_item)
   if (write_tree) {
     create_tree(read_in) %>%
-      write.table(out_tree,
+      utils::write.table(out_tree,
         col.names = FALSE, row.names = FALSE, quote = FALSE,
         fileEncoding = "UTF-8"
       )
@@ -161,17 +157,17 @@ NULL
 #'   transformations but remove EOL spaces and indention due to the way the
 #'   serialization is set up.
 #' @keywords internal
-style_empty <- function(text, base_indention = 0) {
+style_empty <- function(text, base_indention = 0L) {
   transformers <- list(
     # transformer functions
     initialize = default_style_guide_attributes,
-    line_break        = NULL,
-    space             = NULL,
-    token             = NULL,
+    line_break = NULL,
+    space = NULL,
+    token = NULL,
     # transformer options
     use_raw_indention = FALSE,
-    reindention       = specify_reindention(),
-    indent_character  = " ",
+    reindention = specify_reindention(),
+    indent_character = " ",
     NULL
   )
   transformed_text <- parse_transform_serialize_r(text,
@@ -183,12 +179,12 @@ style_empty <- function(text, base_indention = 0) {
 
 #' @describeIn test_transformer Transformations for indention based on operators
 #' @keywords internal
-style_op <- function(text, base_indention = 0) {
+style_op <- function(text, base_indention = 0L) {
   transformers <- list(
     # transformer functions
     initialize        = default_style_guide_attributes,
     line_break        = NULL,
-    space             = partial(indent_op, indent_by = 2),
+    space             = partial(indent_op, indent_by = 2L),
     token             = NULL,
     # transformer options
     use_raw_indention = FALSE,
@@ -239,11 +235,11 @@ copy_to_tempdir <- function(path_perm = testthat_file()) {
 #' @keywords internal
 n_times_faster_with_cache <- function(x1, x2 = x1, ...,
                                       fun = styler::style_text,
-                                      n = 3,
+                                      n = 3L,
                                       clear = "always") {
   rlang::arg_match(clear, c("always", "final", "never", "all but last"))
 
-  out <- purrr::map(1:n, n_times_faster_bench,
+  out <- purrr::map(1L:n, n_times_faster_bench,
     x1 = x1, x2 = x2, fun = fun,
     ..., n = n, clear = clear
   )
@@ -262,7 +258,7 @@ n_times_faster_bench <- function(i, x1, x2, fun, ..., n, clear) {
   first <- system.time(fun(x1, ...))
 
   if (is.null(x2)) {
-    second <- c(elapsed = 1)
+    second <- c(elapsed = 1L)
   } else {
     second <- system.time(fun(x2, ...))
   }
@@ -286,12 +282,12 @@ n_times_faster_bench <- function(i, x1, x2, fun, ..., n, clear) {
 #' @keywords internal
 generate_test_samples <- function() {
   gen <- function(x) {
-    if (length(x) == 0) {
+    if (length(x) == 0L) {
       ""
     } else {
       c(
-        paste0(x[1], gen(x[-1])),
-        paste0(x[1], " # comment\n", paste(x[-1], collapse = ""))
+        paste0(x[1L], gen(x[-1L])),
+        paste0(x[1L], " # comment\n", paste(x[-1L], collapse = ""))
       )
     }
   }
@@ -350,7 +346,7 @@ local_test_setup <- function(cache = FALSE,
 }
 
 cache_more_specs_default <- function() {
-  cache_more_specs(include_roxygen_examples = TRUE, base_indention = 0)
+  cache_more_specs(include_roxygen_examples = TRUE, base_indention = 0L)
 }
 
 #' Test `transformers_drop` for consistency
@@ -368,12 +364,20 @@ test_transformers_drop <- function(transformers) {
   purrr::walk2(transformers$transformers_drop, transformers[scopes], function(x, y) {
     # all x must be in y. select the x that are not in y
     diff <- setdiff(names(x), names(y))
-    if (length(diff) > 0) {
+    if (length(diff) > 0L) {
       rlang::abort(paste(
         "transformers_drop specifies exclusion rules for transformers that ",
         "are not in the style guilde. Please add the rule to the style guide ",
-        "or remove the dropping rules:", paste(diff, collapse = ", ")
+        "or remove the dropping rules:", toString(diff)
       ))
     }
   })
+}
+
+
+skip_during_parallel <- function() {
+  Sys.getenv("STYLER_TEST_IS_TRULY_PARALLEL", TRUE) %>%
+    toupper() %>%
+    as.logical() %>%
+    testthat::skip_if()
 }

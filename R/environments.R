@@ -44,10 +44,10 @@ parser_version_get <- function() {
 #' @rdname parser_version_set
 parser_version_find <- function(pd) {
   ifelse(any(pd$token == "equal_assign"),
-    2,
+    2L,
     ifelse(any(pd$token == "expr_or_assign_or_help"),
-      3,
-      1
+      3L,
+      1L
     )
   )
 }
@@ -58,7 +58,7 @@ parser_version_find <- function(pd) {
 #' @details
 #' * `parser_version`: Needed to dispatch between parser versions, see
 #'   [parser_version_set()] for details.
-#' * `stylerignore`: A tibble with parse data containing tokens that fall within
+#' * `stylerignore`: A data frame with parse data containing tokens that fall within
 #'   a stylerignore sequence. This is used after serializing the flattened
 #'   parse table to apply the initial formatting to these tokens. See
 #'   [stylerignore] for details.

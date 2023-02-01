@@ -4,7 +4,7 @@
 indent_braces <- function(pd, indent_by) {
   indent_indices <- compute_indent_indices(
     pd,
-    token_opening = c("'('", "'['", "'{'"),
+    token_opening = c("'('", "'['", "'{'", "LBB"),
     token_closing = c("')'", "']'", "'}'")
   )
   pd$indent[indent_indices] <- pd$indent[indent_indices] + indent_by
@@ -15,16 +15,43 @@ indent_braces <- function(pd, indent_by) {
 #'
 #' Necessary for consistent indention of the function declaration header.
 #' @param pd A parse table.
+#' @inheritParams is_double_indent_function_declaration
 #' @seealso set_unindention_child update_indention_ref_fun_dec
 #' @keywords internal
-unindent_fun_dec <- function(pd) {
-  if (is_function_dec(pd)) {
+unindent_fun_dec <- function(pd, indent_by = 2L) {
+  if (is_function_declaration(pd)) {
     idx_closing_brace <- which(pd$token %in% "')'")
     fun_dec_head <- seq2(2L, idx_closing_brace)
-    pd$indent[fun_dec_head] <- 0L
+    if (is_double_indent_function_declaration(pd, indent_by = indent_by)) {
+      pd$indent[fun_dec_head] <- 2L * indent_by
+    } else {
+      pd$indent[fun_dec_head] <- 0L
+    }
   }
   pd
 }
+
+#' Is the function declaration double indented?
+#'
+#' Assumes you already checked if it's a function with
+#' `is_function_declaration`. It is double indented if the first token
+#' after the first line break that is a `"SYMBOL_FORMALS"`.
+#' @param pd A parse table.
+#' @inheritParams tidyverse_style
+#' @keywords internal
+is_double_indent_function_declaration <- function(pd, indent_by = 2L) {
+  head_pd <- pd[-nrow(pd), ]
+  line_break_in_header <- which(head_pd$lag_newlines > 0L & head_pd$token == "SYMBOL_FORMALS")
+  if (length(line_break_in_header) > 0L) {
+    # indent results from applying the rules, spaces is the initial spaces
+    # (which is indention if a newline is ahead)
+    pd$spaces[line_break_in_header[1L] - 1L] <= 2L * indent_by
+  } else {
+    FALSE
+  }
+}
+
+
 
 #' @describeIn update_indention Indents *all* tokens after `token` - including
 #'   the last token.
@@ -59,7 +86,7 @@ indent_eq_sub <- function(pd,
   if (!any(eq_sub)) {
     return(pd)
   }
-  has_line_break <- pd$lag_newlines > 0 | pd$token == "COMMENT"
+  has_line_break <- pd$lag_newlines > 0L | pd$token == "COMMENT"
   indent_indices <- which(lag(eq_sub, default = FALSE) & has_line_break)
   if (any(pd$token[indent_indices] == "COMMENT")) {
     indent_indices <- purrr::map_int(indent_indices, function(idx) {
@@ -77,7 +104,7 @@ indent_eq_sub <- function(pd,
 #' @describeIn update_indention Is used to indent for / while / if / if-else
 #'   statements that do not have curly parenthesis.
 #' @keywords internal
-indent_without_paren <- function(pd, indent_by = 2) {
+indent_without_paren <- function(pd, indent_by = 2L) {
   pd %>%
     indent_without_paren_for_while_fun(indent_by) %>%
     indent_without_paren_if_else(indent_by)
@@ -102,12 +129,12 @@ NULL
 #'   x + y
 #' }
 #' }
-#' @importFrom rlang seq2
+#'
 #' @keywords internal
 update_indention_ref_fun_dec <- function(pd_nested) {
-  if (pd_nested$token[1] == "FUNCTION") {
-    seq <- seq2(3, nrow(pd_nested) - 2)
-    pd_nested$indention_ref_pos_id[seq] <- pd_nested$pos_id[2]
+  if (is_function_declaration(pd_nested) && !is_double_indent_function_declaration(pd_nested)) {
+    seq <- seq2(3L, nrow(pd_nested) - 2L)
+    pd_nested$indention_ref_pos_id[seq] <- pd_nested$pos_id[2L]
   }
   pd_nested
 }

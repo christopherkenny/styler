@@ -1,4 +1,3 @@
-
 #' Create a style guide
 #'
 #' @param reindention A list of parameters for regex re-indention, most
@@ -33,9 +32,9 @@ create_style_guide <- function(initialize = default_style_guide_attributes,
                                indention = NULL,
                                use_raw_indention = FALSE,
                                reindention = tidyverse_reindention()) {
-  lst(
+  list(
     # transformer functions
-    initialize = lst(initialize),
+    initialize = list(initialize),
     line_break,
     space,
     token,

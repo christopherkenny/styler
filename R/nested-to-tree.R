@@ -4,7 +4,6 @@
 #' @param text A character vector.
 #' @inheritParams create_node_from_nested_root
 #' @return A data frame.
-#' @importFrom purrr when
 #' @keywords internal
 create_tree <- function(text, structure_only = FALSE) {
   compute_parse_data_nested(text, transformers = NULL) %>%
@@ -16,15 +15,16 @@ create_tree_from_pd_with_default_style_attributes <- function(pd,
                                                               structure_only = FALSE) {
   pd %>%
     create_node_from_nested_root(structure_only) %>%
+    # don't use `styler_df()` here; `vctrs::data_frame()` only accepts a vector, not a <Node/R6> object
     as.data.frame()
 }
 
 
-#' Convert a nested tibble into a node tree
+#' Convert a nested data frame into a node tree
 #'
-#' This function is convenient to display all nesting levels of a nested tibble
+#' This function is convenient to display all nesting levels of a nested data frame
 #' at once.
-#' @param pd_nested A nested tibble.
+#' @param pd_nested A nested data frame.
 #' @param structure_only Whether or not create a tree that represents the
 #'   structure of the expression without any information on the tokens. Useful
 #'   to check whether two structures are identical.
@@ -35,7 +35,7 @@ create_tree_from_pd_with_default_style_attributes <- function(pd,
 #'     list(styler.cache_name = NULL), # temporarily deactivate cache
 #'     {
 #'       code <- "a <- function(x) { if(x > 1) { 1+1 } else {x} }"
-#'       nested_pd <- styler:::compute_parse_data_nested(code)
+#'       nested_pd <- compute_parse_data_nested(code)
 #'       initialized <- styler:::pre_visit_one(
 #'         nested_pd, default_style_guide_attributes
 #'       )
@@ -48,10 +48,12 @@ create_tree_from_pd_with_default_style_attributes <- function(pd,
 #' @keywords internal
 create_node_from_nested_root <- function(pd_nested, structure_only) {
   assert_data.tree_installation()
-  n <- data.tree::Node$new(ifelse(
-    structure_only, "Hierarchical structure",
+  name <- if (structure_only) {
+    "Hierarchical structure"
+  } else {
     "ROOT (token: short_text [lag_newlines/spaces] {pos_id})"
-  ))
+  }
+  n <- data.tree::Node$new(name)
   create_node_from_nested(pd_nested, n, structure_only)
   n
 }
@@ -59,7 +61,6 @@ create_node_from_nested_root <- function(pd_nested, structure_only) {
 #'
 #' @inheritParams create_node_from_nested_root
 #' @param parent The parent of the node to be created.
-#' @importFrom purrr map2 map
 #' @keywords internal
 create_node_from_nested <- function(pd_nested, parent, structure_only) {
   if (is.null(pd_nested)) {

@@ -16,11 +16,13 @@ set_space_around_op <- function(pd_flat, strict) {
   if (!any(op_after)) {
     return(pd_flat)
   }
+
+  sum_lag_newlines <- sum(pd_flat$lag_newlines)
   if (
     !getOption("styler.ignore_alignment", FALSE) &&
       (
-        (is_function_call(pd_flat) && sum(pd_flat$lag_newlines) > 2) ||
-          (is_function_dec(pd_flat) && sum(pd_flat$lag_newlines) > 1)
+        (is_function_call(pd_flat) && sum_lag_newlines > 2L) ||
+          (is_function_declaration(pd_flat) && sum_lag_newlines > 1L)
       ) &&
       any(pd_flat$token %in% c("EQ_SUB", "','", "EQ_FORMALS"))
   ) {
@@ -94,10 +96,8 @@ style_space_around_token <- function(pd_flat,
     pd_flat$spaces[idx_before] <- level_before
     pd_flat$spaces[idx_after] <- level_after
   } else {
-    pd_flat$spaces[idx_before] <-
-      pmax(pd_flat$spaces[idx_before], level_before)
-    pd_flat$spaces[idx_after] <-
-      pmax(pd_flat$spaces[idx_after], level_after)
+    pd_flat$spaces[idx_before] <- pmax(pd_flat$spaces[idx_before], level_before)
+    pd_flat$spaces[idx_after] <- pmax(pd_flat$spaces[idx_after], level_after)
   }
   pd_flat
 }
@@ -106,20 +106,23 @@ style_space_around_tilde <- function(pd_flat, strict) {
   if (is_symmetric_tilde_expr(pd_flat)) {
     pd_flat <- style_space_around_token(pd_flat,
       strict, "'~'",
-      level_before = 1, level_after = 1
-    )
-  } else if (is_asymmetric_tilde_expr(pd_flat)) {
-    pd_flat <- style_space_around_token(pd_flat,
-      strict = TRUE, "'~'", level_before = 1,
-      level_after = ifelse(nrow(pd_flat$child[[2]]) > 1, 1, 0)
+      level_before = 1L, level_after = 1L
     )
   }
+
+  if (is_asymmetric_tilde_expr(pd_flat)) {
+    pd_flat <- style_space_around_token(pd_flat,
+      strict = TRUE, "'~'", level_before = 1L,
+      level_after = as.integer(nrow(pd_flat$child[[2L]]) > 1L)
+    )
+  }
+
   pd_flat
 }
 
 remove_space_after_unary_pm_nested <- function(pd) {
-  if (any(pd$token[1] %in% c("'+'", "'-'"))) {
-    pd$spaces[1] <- 0L
+  if (any(pd$token[1L] %in% c("'+'", "'-'"))) {
+    pd$spaces[1L] <- 0L
   }
 
   pd
@@ -223,11 +226,11 @@ remove_space_before_comma <- function(pd_flat) {
 #' @param pd_flat A flat parse table.
 #' @keywords internal
 set_space_between_levels <- function(pd_flat) {
-  if (pd_flat$token[1] %in% c("FUNCTION", "IF", "WHILE")) {
+  if (pd_flat$token[1L] %in% c("FUNCTION", "IF", "WHILE")) {
     index <- pd_flat$token == "')'" & pd_flat$newlines == 0L
     pd_flat$spaces[index] <- 1L
-  } else if (pd_flat$token[1] == "FOR") {
-    index <- pd_flat$token == "forcond" & pd_flat$newlines == 0
+  } else if (pd_flat$token[1L] == "FOR") {
+    index <- pd_flat$token == "forcond" & pd_flat$newlines == 0L
     pd_flat$spaces[index] <- 1L
   }
   pd_flat
@@ -248,7 +251,6 @@ set_space_between_levels <- function(pd_flat) {
 #'
 #' @param pd A parse table.
 #' @param force_one Whether or not to force one space or allow multiple spaces.
-#' @importFrom purrr map_chr
 #' @keywords internal
 start_comments_with_space <- function(pd, force_one = FALSE) {
   is_comment <- is_comment(pd)
@@ -264,7 +266,7 @@ start_comments_with_space <- function(pd, force_one = FALSE) {
     return(pd)
   }
 
-  comments <- rematch2::re_match(
+  comments <- re_match(
     pd$text[is_comment],
     "^(?<prefix>#+['\\*]*)(?<space_after_prefix> *)(?<text>.*)$"
   )
@@ -284,7 +286,7 @@ start_comments_with_space <- function(pd, force_one = FALSE) {
       comments$text
     ) %>%
     trimws("right")
-  pd$short[is_comment] <- substr(pd$text[is_comment], 1, 5)
+  pd$short[is_comment] <- substr(pd$text[is_comment], 1L, 5L)
   pd
 }
 
@@ -343,20 +345,16 @@ remove_space_after_fun_dec <- function(pd_flat) {
 }
 
 remove_space_around_colons <- function(pd_flat) {
-  one_two_or_three_col_after <-
-    pd_flat$token %in% c("':'", "NS_GET_INT", "NS_GET")
+  one_two_or_three_col_after <- pd_flat$token %in% c("':'", "NS_GET_INT", "NS_GET")
+  one_two_or_three_col_before <- lead(one_two_or_three_col_after, default = FALSE)
 
-  one_two_or_three_col_before <-
-    lead(one_two_or_three_col_after, default = FALSE)
-
-  col_around <-
-    one_two_or_three_col_before | one_two_or_three_col_after
+  col_around <- one_two_or_three_col_before | one_two_or_three_col_after
 
   pd_flat$spaces[col_around & (pd_flat$newlines == 0L)] <- 0L
   pd_flat
 }
 
-#' Set space between EQ_SUB and "','"
+#' Set space between `EQ_SUB` and `"','"`
 #' @param pd A parse table.
 #' @keywords internal
 set_space_between_eq_sub_and_comma <- function(pd) {

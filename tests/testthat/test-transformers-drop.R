@@ -8,7 +8,7 @@ remove_space_after_excl_ <- function(pd_flat) {
 }
 
 t <- create_style_guide(
-  space = lst(remove_space_after_excl_),
+  space = list(remove_space_after_excl_),
   transformers_drop = specify_transformers_drop(
     spaces = list(remove_space_after_excl_ = c("'!'"))
   ),
@@ -17,17 +17,17 @@ t <- create_style_guide(
 )
 
 t_no_drop <- create_style_guide(
-  space = lst(remove_space_after_excl_),
+  space = list(remove_space_after_excl_),
   transformers_drop = NULL,
 )
 
 t_empty_drop1 <- create_style_guide(
-  space = lst(remove_space_after_excl_),
+  space = list(remove_space_after_excl_),
   transformers_drop = list(space = list()),
 )
 
 t_empty_drop2 <- create_style_guide(
-  space = lst(remove_space_after_excl_),
+  space = list(remove_space_after_excl_),
   transformers_drop = list(),
 )
 
@@ -76,7 +76,7 @@ test_that("tidyverse transformers are correctly dropped", {
     "set_line_break_after_opening_if_call_is_multi_line",
     "set_line_break_before_closing_call",
     "remove_line_break_in_fun_call",
-    "set_linebreak_after_ggplot2_plus"
+    "set_line_break_after_ggplot2_plus"
   )
   expect_setequal(names(t_fun$line_break), names_line_break)
 
@@ -142,7 +142,7 @@ test_that("can handle old style guide without transformer object", {
 
 test_that("can handle default", {
   t_no_drop <- create_style_guide(
-    space = lst(remove_space_after_excl_),
+    space = list(remove_space_after_excl_),
     style_guide_name = "styler::t@https://github.com/r-lib",
     style_guide_version = as.character(packageVersion("styler"))
   )

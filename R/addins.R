@@ -45,14 +45,14 @@
 NULL
 
 
-#' @importFrom rlang abort
+
 #' @keywords internal
 style_active_file <- function() {
   communicate_addins_style_transformers()
   context <- get_rstudio_context()
   transformer <- make_transformer(get_addins_style_transformer(),
     include_roxygen_examples = TRUE,
-    base_indention = 0,
+    base_indention = 0L,
     warn_empty = is_plain_r_file(context$path)
   )
   is_r_file <- any(
@@ -71,14 +71,14 @@ style_active_file <- function() {
     abort("Can only style .R, .Rmd and .Rnw files.")
   }
   rstudioapi::modifyRange(
-    c(1, 1, length(context$contents) + 1, 1),
+    c(1L, 1L, length(context$contents) + 1L, 1L),
     paste0(ensure_last_n_empty(out), collapse = "\n"),
     id = context$id
   )
-  if (save_after_styling_is_active() == TRUE && context$path != "") {
+  if (save_after_styling_is_active() && context$path != "") {
     rstudioapi::documentSave(context$id)
   }
-  rstudioapi::setCursorPosition(context$selection[[1]]$range)
+  rstudioapi::setCursorPosition(context$selection[[1L]]$range)
 }
 
 #' Wrapper around [style_pkg()] for access via Addin.
@@ -118,27 +118,26 @@ save_after_styling_is_active <- function() {
 }
 
 #' Styles the highlighted selection in a `.R` or `.Rmd` file.
-#' @importFrom rlang abort
 #' @keywords internal
 style_selection <- function() {
   communicate_addins_style_transformers()
   context <- get_rstudio_context()
-  text <- context$selection[[1]]$text
-  if (all(nchar(text) == 0)) abort("No code selected")
+  text <- context$selection[[1L]]$text
+  if (all(nchar(text) == 0L)) abort("No code selected")
   out <- style_text(
     text,
     transformers = get_addins_style_transformer(),
     base_indention = nchar(gsub("^( *).*", "\\1", text))
   )
   rstudioapi::modifyRange(
-    context$selection[[1]]$range,
+    context$selection[[1L]]$range,
     paste0(c(
       out,
-      if (context$selection[[1]]$range$end[2] == 1) ""
+      if (context$selection[[1L]]$range$end[2L] == 1L) ""
     ), collapse = "\n"),
     id = context$id
   )
-  if (save_after_styling_is_active() == TRUE && context$path != "") {
+  if (save_after_styling_is_active() && context$path != "") {
     invisible(rstudioapi::documentSave(context$id))
   }
 }
@@ -148,9 +147,7 @@ get_rstudio_context <- function() {
 }
 
 #' Asks the user to supply a style
-#' @importFrom rlang abort
 #' @keywords internal
-#' @importFrom rlang with_handlers abort
 set_style_transformers <- function() {
   current_style <- get_addins_style_transformer_name()
   new_style <-
@@ -160,7 +157,7 @@ set_style_transformers <- function() {
       current_style
     )
   if (!is.null(new_style)) {
-    parsed_new_style <- with_handlers(
+    parsed_new_style <- rlang::with_handlers(
       {
         transformers <- eval(parse(text = new_style))
         style_text(
@@ -182,7 +179,6 @@ set_style_transformers <- function() {
 }
 
 #' Return the style function or name
-#'
 #' @keywords internal
 get_addins_style_transformer_name <- function() {
   getOption("styler.addins_style_transformer")
@@ -210,10 +206,9 @@ communicate_addins_style_transformers <- function() {
 #' @param context The context from `styler:::get_rstudio_context()`.
 #' @param transformer A transformer function most conveniently constructed with
 #'   [make_transformer()].
-#' @importFrom rlang with_handlers abort
 #' @keywords internal
 try_transform_as_r_file <- function(context, transformer) {
-  with_handlers(
+  rlang::with_handlers(
     transformer(context$contents),
     error = function(e) {
       preamble_for_unsaved <- paste(

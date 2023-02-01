@@ -19,7 +19,7 @@ transform_files <- function(files,
   transformer <- make_transformer(
     transformers, include_roxygen_examples, base_indention
   )
-  max_char <- min(max(nchar(files), 0), getOption("width"))
+  max_char <- min(max(nchar(files), 0L), getOption("width"))
   len_files <- length(files)
   if (len_files > 0L && !getOption("styler.quiet", FALSE)) {
     cat("Styling ", len_files, " files:\n")
@@ -30,7 +30,7 @@ transform_files <- function(files,
   )
   communicate_summary(changed, max_char)
   communicate_warning(changed, transformers)
-  new_tibble(list(file = files, changed = changed), nrow = len_files)
+  new_styler_df(list(file = files, changed = changed))
 }
 
 #' Transform a file and output a customized message
@@ -53,8 +53,8 @@ transform_file <- function(path,
                            message_after_if_changed = " *",
                            ...,
                            dry) {
-  char_after_path <- nchar(message_before) + nchar(path) + 1
-  max_char_after_message_path <- nchar(message_before) + max_char_path + 1
+  char_after_path <- nchar(message_before) + nchar(path) + 1L
+  max_char_after_message_path <- nchar(message_before) + max_char_path + 1L
   n_spaces_before_message_after <-
     max_char_after_message_path - char_after_path
   if (!getOption("styler.quiet", FALSE)) {
@@ -66,7 +66,15 @@ transform_file <- function(path,
   }
   changed <- transform_code(path, fun = fun, ..., dry = dry)
 
-  bullet <- ifelse(is.na(changed), "warning", ifelse(changed, "info", "tick"))
+  bullet <- if (is.na(changed)) {
+    "warning"
+  } else {
+    if (changed) {
+      "info"
+    } else {
+      "tick"
+    }
+  }
 
   if (!getOption("styler.quiet", FALSE)) {
     cli::cat_bullet(bullet = bullet)
@@ -85,7 +93,6 @@ transform_file <- function(path,
 #'   examples.
 #' @inheritParams parse_transform_serialize_r
 #' @keywords internal
-#' @importFrom purrr when
 make_transformer <- function(transformers,
                              include_roxygen_examples,
                              base_indention,
@@ -114,20 +121,23 @@ make_transformer <- function(transformers,
         parse_transform_serialize_r(transformers,
           base_indention = base_indention,
           warn_empty = warn_empty
-        ) %>%
-        when(
-          include_roxygen_examples ~
-            parse_transform_serialize_roxygen(.,
-              transformers = transformers, base_indention = base_indention
-            ),
-          ~.
         )
+
+      if (include_roxygen_examples) {
+        transformed_code <- parse_transform_serialize_roxygen(
+          transformed_code,
+          transformers = transformers,
+          base_indention = base_indention
+        )
+      }
+
       if (should_use_cache) {
         cache_write(
           transformed_code, transformers,
           cache_more_specs(include_roxygen_examples, base_indention)
         )
       }
+
       transformed_code
     } else {
       text
@@ -159,7 +169,6 @@ make_transformer <- function(transformers,
 #' Finally, that we have roxygen code snippets that are either dont* or not,
 #' we style them in [style_roxygen_example_snippet()] using
 #' [parse_transform_serialize_r()].
-#' @importFrom purrr map_at flatten_chr
 #' @keywords internal
 parse_transform_serialize_roxygen <- function(text,
                                               transformers,
@@ -198,7 +207,7 @@ parse_transform_serialize_roxygen <- function(text,
 #'   sections. This list is named `separated`.
 #' * An integer vector with the indices that correspond to roxygen code
 #'   examples in `separated`.
-#' @importFrom rlang seq2
+#'
 #' @keywords internal
 split_roxygen_segments <- function(text, roxygen_examples) {
   if (is.null(roxygen_examples)) {
@@ -208,7 +217,11 @@ split_roxygen_segments <- function(text, roxygen_examples) {
   active_segment <- as.integer(all_lines %in% roxygen_examples)
   segment_id <- cumsum(abs(c(0L, diff(active_segment)))) + 1L
   separated <- split(text, factor(segment_id))
-  restyle_selector <- ifelse(roxygen_examples[1] == 1L, odd_index, even_index)
+  restyle_selector <- if (roxygen_examples[1L] == 1L) {
+    odd_index
+  } else {
+    even_index
+  }
 
   list(separated = separated, selectors = restyle_selector(separated))
 }
@@ -218,41 +231,58 @@ split_roxygen_segments <- function(text, roxygen_examples) {
 #' Wrapper function for the common three operations.
 #' @param warn_empty Whether or not a warning should be displayed when `text`
 #'   does not contain any tokens.
+#' @param is_roxygen_code_example Is code a roxygen examples block?
 #' @inheritParams compute_parse_data_nested
 #' @inheritParams parse_transform_serialize_r_block
 #' @seealso [parse_transform_serialize_roxygen()]
-#' @importFrom rlang abort
+
 #' @keywords internal
 parse_transform_serialize_r <- function(text,
                                         transformers,
                                         base_indention,
-                                        warn_empty = TRUE) {
+                                        warn_empty = TRUE,
+                                        is_roxygen_code_example = FALSE) {
   more_specs <- cache_more_specs(
     include_roxygen_examples = TRUE, base_indention = base_indention
   )
 
   text <- assert_text(text)
-  pd_nested <- compute_parse_data_nested(text, transformers, more_specs)
-  if (nrow(pd_nested) == 0) {
+  if (identical(text, "")) {
     if (warn_empty) {
       warn("Text to style did not contain any tokens. Returning empty string.")
     }
     return("")
   }
+  pd_nested <- compute_parse_data_nested(text, transformers, more_specs)
   transformers <- transformers_drop(
     pd_nested$text[!pd_nested$is_cached],
     transformers
   )
 
-  text_out <- pd_nested %>%
-    split(pd_nested$block) %>%
-    unname() %>%
-    map2(find_blank_lines_to_next_block(pd_nested),
-      parse_transform_serialize_r_block,
+  strict <- transformers$more_specs_style_guide$strict %||% TRUE
+  pd_split <- unname(split(pd_nested, pd_nested$block))
+  pd_blank <- find_blank_lines_to_next_block(pd_nested)
+
+  text_out <- vector("list", length(pd_split))
+  for (i in seq_along(pd_split)) {
+    # if the first block: only preserve for roxygen or not strict
+    # if a later block: always preserve line breaks
+    start_line <- if (i == 1L) {
+      if (is_roxygen_code_example || !strict) pd_blank[[i]] else 1L
+    } else {
+      pd_blank[[i]]
+    }
+
+
+    text_out[[i]] <- parse_transform_serialize_r_block(
+      pd_split[[i]],
+      start_line = start_line,
       transformers = transformers,
       base_indention = base_indention
-    ) %>%
-    unlist()
+    )
+  }
+
+  text_out <- unlist(text_out, use.names = FALSE)
 
   verify_roundtrip(
     text, text_out,
@@ -280,7 +310,7 @@ parse_transform_serialize_r <- function(text,
 #' @keywords internal
 #' @seealso specify_transformers_drop
 transformers_drop <- function(text, transformers) {
-  if (length(text) > 0) {
+  if (length(text) > 0L) {
     is_colon <- text == ";"
     if (any(is_colon)) {
       # ; can only be parsed when on the same line as other token, not the case
@@ -323,14 +353,13 @@ transformers_drop <- function(text, transformers) {
 #'
 #' @param pd_nested A nested parse table.
 #' @param transformers A list of *named* transformer functions
-#' @importFrom purrr flatten
 #' @keywords internal
 apply_transformers <- function(pd_nested, transformers) {
   transformed_updated_multi_line <- post_visit(
     pd_nested,
     c(
       transformers$initialize, transformers$line_break, set_multi_line,
-      if (length(transformers$line_break) != 0) update_newlines
+      if (length(transformers$line_break) != 0L) update_newlines
     )
   )
 
@@ -360,7 +389,7 @@ apply_transformers <- function(pd_nested, transformers) {
 #'   Needed for reverse engineering the scope.
 #' @keywords internal
 parse_tree_must_be_identical <- function(transformers) {
-  length(transformers$token) == 0
+  length(transformers$token) == 0L
 }
 
 #' Verify the styling
@@ -376,13 +405,11 @@ parse_tree_must_be_identical <- function(transformers) {
 #' Note that this method ignores roxygen code examples and
 #' comments and no verification can be conducted if tokens are in the styling
 #' scope.
-#' @importFrom rlang abort
+
 #' @examples
 #' styler:::verify_roundtrip("a+1", "a + 1")
 #' styler:::verify_roundtrip("a+1", "a + 1 # comments are dropped")
-#' \dontrun{
-#' styler:::verify_roundtrip("a+1", "b - 3")
-#' }
+#' try(styler:::verify_roundtrip("a+1", "b - 3"))
 #' @keywords internal
 verify_roundtrip <- function(old_text, new_text, parsable_only = FALSE) {
   if (parsable_only) {

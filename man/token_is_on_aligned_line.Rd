@@ -40,14 +40,14 @@ withr::with_options(
   list(styler.cache_name = NULL), # temporarily deactivate cache
   {
     transformers <- tidyverse_style()
-    pd_nested <- styler:::compute_parse_data_nested(c(
+    pd_nested <- compute_parse_data_nested(c(
       "call(",
-      "  ab = 1,",
+      "  ab = 1L,",
       "  a  = 2",
       ")"
     )) \%>\%
       styler:::post_visit(transformers$initialize)
-    nest <- pd_nested$child[[1]]
+    nest <- pd_nested$child[[1L]]
     styler:::token_is_on_aligned_line(nest)
   }
 )

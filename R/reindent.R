@@ -30,9 +30,8 @@ apply_ref_indention <- function(flattened_pd) {
 #' @keywords internal
 apply_ref_indention_one <- function(flattened_pd, target_token) {
   token_to_update <- find_tokens_to_update(flattened_pd, target_token)
-  # udate spaces
+  # update spaces
   copied_spaces <- flattened_pd$col2[target_token]
-  old_spaces <- flattened_pd$lag_spaces[token_to_update[1]]
   shift <- copied_spaces
   flattened_pd$lag_spaces[token_to_update] <-
     flattened_pd$lag_spaces[token_to_update] + shift
@@ -85,17 +84,16 @@ find_tokens_to_update <- function(flattened_pd, target_token) {
 #'   checked or all tokens.
 #' @return A flattened parse table with indention set to `target_indention` for
 #'   the tokens that match `regex.`
-#' @importFrom purrr map flatten_int
 #' @keywords internal
 set_regex_indention <- function(flattened_pd,
                                 pattern,
-                                target_indention = 0,
+                                target_indention = 0L,
                                 comments_only = TRUE) {
   if (comments_only) {
     cond <- which(
-      (flattened_pd$token == "COMMENT") & (flattened_pd$lag_newlines > 0)
+      (flattened_pd$token == "COMMENT") & (flattened_pd$lag_newlines > 0L)
     )
-    if (length(cond) < 1) {
+    if (length(cond) < 1L) {
       return(flattened_pd)
     }
     to_check <- flattened_pd[cond, ]
