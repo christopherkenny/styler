@@ -324,6 +324,7 @@ quote_style <- function(scope = "tokens",
                             math_token_spacing = tidyverse_math_token_spacing()) {
   args <- as.list(environment())
   scope <- scope_normalize(scope)
+  indent_character <- " "
 
 
   indention_manipulators <- if ("indention" %in% scope) {
@@ -341,7 +342,9 @@ quote_style <- function(scope = "tokens",
   space_manipulators <- if ("spaces" %in% scope) {
     list(
       remove_space_before_closing_paren = remove_space_before_closing_paren,
-      remove_space_before_opening_paren = if (strict) remove_space_before_opening_paren,
+      remove_space_before_opening_paren = if (strict) {
+        remove_space_before_opening_paren
+      },
       add_space_after_for_if_while = add_space_after_for_if_while,
       remove_space_before_comma = remove_space_before_comma,
       style_space_around_math_token = partial(
@@ -405,13 +408,19 @@ quote_style <- function(scope = "tokens",
         partial(
           set_line_break_after_opening_if_call_is_multi_line,
           except_token_after = "COMMENT",
-          except_text_before = c("ifelse", "if_else"), # don't modify line break here
-          force_text_before = c("switch") # force line break after first token
+          # don't modify line break here
+          except_text_before = c("ifelse", "if_else"),
+          force_text_before = "switch" # force line break after first token
         )
       },
-      remove_line_break_in_fun_call = purrr::partial(remove_line_break_in_fun_call, strict = strict),
+      remove_line_break_in_fun_call = purrr::partial(
+        remove_line_break_in_fun_call,
+        strict = strict
+      ),
       add_line_break_after_pipe = if (strict) add_line_break_after_pipe,
-      set_linebreak_after_ggplot2_plus = if (strict) set_linebreak_after_ggplot2_plus
+      set_line_break_after_ggplot2_plus = if (strict) {
+        set_line_break_after_ggplot2_plus
+      }
     )
   }
 
@@ -422,7 +431,12 @@ quote_style <- function(scope = "tokens",
       resolve_semicolon = resolve_semicolon,
       add_brackets_in_pipe = add_brackets_in_pipe,
       wrap_if_else_while_for_fun_multi_line_in_curly =
-        if (strict) wrap_if_else_while_for_fun_multi_line_in_curly
+        if (strict) {
+          purrr::partial(
+            wrap_if_else_while_for_fun_multi_line_in_curly,
+            indent_by = indent_by
+          )
+        }
     )
   }
 
@@ -466,16 +480,18 @@ quote_style <- function(scope = "tokens",
     tokens = list(
       resolve_semicolon = "';'",
       add_brackets_in_pipe = c("SPECIAL-PIPE", "PIPE"),
-      # before 3.6, these assignments are not wrapped into top level expression
+      # before 3.6, these assignments are not wrapped into top-level expression
       # and `text` supplied to transformers_drop() is "", so it appears to not
       # contain EQ_ASSIGN, and the transformer is falsely removed.
       # compute_parse_data_nested / text_to_flat_pd ('a = 4')
       force_assignment_op = "EQ_ASSIGN",
-      wrap_if_else_while_for_fun_multi_line_in_curly = c("IF", "WHILE", "FOR", "FUNCTION")
+      wrap_if_else_while_for_fun_multi_line_in_curly = c(
+        "IF", "WHILE", "FOR", "FUNCTION"
+      )
     )
   )
 
-  if (getRversion() < 3.6) {
+  if (getRversion() < "3.6") {
     transformers_drop$token$force_assignment_op <- NULL
   }
 
@@ -493,7 +509,8 @@ quote_style <- function(scope = "tokens",
     style_guide_name       =               style_guide_name,
     style_guide_version    =                 styler_version,
     more_specs_style_guide =                           args,
-    transformers_drop      =              transformers_drop
+    transformers_drop      =              transformers_drop,
+    indent_character       =               indent_character
   )
 }
 
