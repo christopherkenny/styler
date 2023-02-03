@@ -73,5 +73,12 @@ style_text(c("ab <- 3", "a  <-3"), strict = TRUE) # drops alignment of "<-"
 # styling line breaks only without spaces
 style_text(c("ab <- 3", "a =3"), strict = TRUE, scope = I(c("line_breaks", "tokens")))
 }
+\seealso{
+Other obtain transformers: 
+\code{\link{quote_style}()}
+
+Other style_guides: 
+\code{\link{quote_style}()}
+}
 \concept{obtain transformers}
 \concept{style_guides}
